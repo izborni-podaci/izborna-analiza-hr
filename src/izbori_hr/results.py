@@ -129,6 +129,18 @@ def slug(text: str) -> str:
     return re.sub(r"[^a-z0-9]+", "-", text.translate(table).lower()).strip("-")
 
 
+def _county(value) -> str:
+    """The county's number without DIP's leading zero (the president's files write "01", the parliament's "1")."""
+    value = str(value).strip()
+    return str(int(value)) if value.isdigit() else value
+
+
+def _number(value) -> str:
+    """The station's number without DIP's leading zeros ("001" in the parliament's files, 1 in the president's)."""
+    value = str(value).strip()
+    return str(int(value)) if value.isdigit() else value
+
+
 def _int(value) -> int:
     if value is None or value == "":
         return 0
@@ -229,8 +241,8 @@ def read_parliament(election: Election, round_: Round, raw: Path) -> RoundResult
                 values = [_int(x) for x in r[FIXED:]]
                 place_kind = r[4].strip()
                 stations.append(Station(
-                    contest=cid, kind="abroad" if place_kind == "država" else kind, county_no=r[2].strip(),
-                    county=r[3].strip(), place_kind=place_kind, municipality=r[5].strip(), number=r[6].strip(),
+                    contest=cid, kind="abroad" if place_kind == "država" else kind, county_no=_county(r[2]),
+                    county=r[3].strip(), place_kind=place_kind, municipality=r[5].strip(), number=_number(r[6]),
                     name=r[7].strip(), location=r[8].strip(), address=r[9].strip(), registered=_int(r[10]),
                     voted=_int(r[11]), ballots=_int(r[12]), valid=_int(r[13]), invalid=_int(r[14]),
                     votes=[values[c] for c in list_cols],
@@ -256,11 +268,11 @@ def read_president(election: Election, round_: Round, raw: Path) -> RoundResults
             continue
         cells = ["" if x is None else x for x in r]
         place_kind = str(cells[2]).strip()
-        number = str(cells[4]).strip()
+        number = _number(cells[4])
         # special stations (care homes, prisons) are numbered from 901 in their municipality
         kind = "abroad" if place_kind == "država" else "special" if number.isdigit() and int(number) >= 900 else "domestic"
         stations.append(Station(
-            contest="RH", kind=kind, county_no=str(cells[0]).strip(),
+            contest="RH", kind=kind, county_no=_county(cells[0]),
             county=str(cells[1]).strip(), place_kind=place_kind, municipality=str(cells[3]).strip(),
             number=number, name=str(cells[5]).strip(), location=str(cells[6]).strip(),
             address=str(cells[7]).strip(), registered=_int(cells[8]), voted=_int(cells[9]), ballots=_int(cells[10]),

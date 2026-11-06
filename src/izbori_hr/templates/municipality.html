@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% import "_macros.html" as mx with context %}
+{% block title %}{{ name(m.name) }} · {{ rtitle }}{% endblock %}
+{% block main %}
+{{ mx.round_nav('', name(m.name)) }}
+<p class="kicker">{{ rtitle }} · {{ t('abroad') if m.abroad else name(m.county) }}</p>
+<h1>{{ name(m.name) }}</h1>
+{{ mx.source(view) }}
+
+<section class="tiles">
+  <div class="tile"><p class="tile-label">{{ t('stations') }}</p><p class="tile-value">{{ i(m.count) }}</p></div>
+  <div class="tile"><p class="tile-label">{{ t('voted') }}</p><p class="tile-value">{{ i(m.voted) }}</p>{% if m.turnout is not none %}<p class="tile-sub">{{ t('turnout') }} {{ pct(m.turnout, 1) }}</p>{% endif %}</div>
+  <div class="tile"><p class="tile-label">{{ t('invalid') }}</p><p class="tile-value">{{ pct(m.invalid_share, 1) }}</p></div>
+  <div class="tile"><p class="tile-label">{{ t('flagged') }}</p><p class="tile-value">{% if m.flagged %}<a href="{{ link(base + 'check.html') }}#m-{{ m.key }}">{{ i(m.flagged) }}</a>{% else %}0{% endif %}</p></div>
+</section>
+{% if view.kind == 'parliament' and sections|selectattr('c.contest.minority', 'false')|list|length > 1 %}<p class="muted small">{{ t('special_note') }}</p>{% endif %}
+
+{% for sec in sections %}
+{% set c = sec.c %}
+{% set minority = c.contest.minority %}
+{% set denom = 'voted' if c.denominator == 'voted' else 'valid' %}
+<section id="u-{{ sec.id }}">
+  <h2>{% if view.kind == 'parliament' %}<a href="{{ link(base ~ 'j/' ~ sec.id ~ '.html') }}">{{ cname(sec.id) }}</a>{% else %}{{ t('stations_heading') }}{% endif %}</h2>
+  {% if minority %}<p class="muted small">{{ t('minority_note') }}</p>{% endif %}
+  <p class="muted small">{{ t('mun_votes_note') }}</p>
+  <div class="table-wrap">
+  <table class="compact stations">
+    <thead><tr>
+      <th class="num">{{ t('station_no') }}</th><th>{{ t('station') }}</th>
+      {% if not minority %}<th class="num">{{ t('registered') }}</th>{% endif %}<th class="num">{{ t('voted') }}</th>{% if not minority %}<th class="num">{{ t('turnout') }}</th>{% endif %}
+      <th class="num">{{ t('ballots') }}</th><th class="num">{{ t('invalid') }}</th>
+      {% for k in sec.top %}<th class="num" title="{{ c.rows[k].name }}">{{ short_name(c.rows[k].name) if c.contest.lists else c.rows[k].name }}</th>{% endfor %}
+      {% if c.rows|length > sec.top|length %}<th class="num">{{ t('others') }}</th>{% endif %}
+      <th>{{ t('flags') }}</th>
+    </tr></thead>
+    <tbody>
+    {% for s in sec.stations %}
+      {% set fl = view.by_station.get((s.contest, s.key), []) %}
+      {% set d = s.voted if denom == 'voted' else s.valid %}
+      <tr id="s-{{ s.contest }}-{{ s.key.split('/', 1)[1] }}"{% if fl %} class="flagged"{% endif %}>
+        <td class="num">{{ s.number }}{% if s.kind == 'special' and view.kind == 'parliament' %} <span class="muted small" title="{{ t('kind_special') }}">P</span>{% endif %}</td>
+        <td>{{ s.location }}<div class="small muted">{% if s.kind != 'domestic' %}{{ t('kind_' ~ s.kind) }} · {% endif %}{% if s.unit and minority and s.kind == 'special' %}{{ t('unit') }} {{ s.unit }} · {% endif %}{{ s.name }} · {{ s.address }}</div></td>
+        {% if not minority %}<td class="num">{{ i(s.registered) }}</td>{% endif %}<td class="num">{{ i(s.voted) }}</td>
+        {% if not minority %}<td class="num">{% if s.kind == 'domestic' %}{{ pct(s.turnout, 1) }}{% else %}—{% endif %}</td>{% endif %}
+        <td class="num">{{ i(s.ballots) }}</td><td class="num">{{ i(s.invalid) }}</td>
+        {% for k in sec.top %}<td class="num" title="{{ i(s.votes[k]) }}">{{ pct(s.votes[k] / d if d else none, 1) }}</td>{% endfor %}
+        {% if c.rows|length > sec.top|length %}{% set shown = namespace(n=0) %}{% for k in sec.top %}{% set shown.n = shown.n + s.votes[k] %}{% endfor %}<td class="num muted" title="{{ i(s.votes|sum - shown.n) }}">{{ pct((s.votes|sum - shown.n) / d if d else none, 1) }}</td>{% endif %}
+        <td>{% if fl %}{{ mx.chips(fl) }}{% endif %}</td>
+      </tr>
+    {% endfor %}
+      {% set d = sec.voted if denom == 'voted' else sec.valid %}
+      <tr class="total"><td></td><td>{{ t('total') }}</td>
+        {% if not minority %}<td class="num">{{ i(sec.stations|sum(attribute='registered')) }}</td>{% endif %}<td class="num">{{ i(sec.voted) }}</td>{% if not minority %}<td></td>{% endif %}
+        <td class="num">{{ i(sec.stations|sum(attribute='ballots')) }}</td><td class="num">{{ i(sec.stations|sum(attribute='invalid')) }}</td>
+        {% for k in sec.top %}<td class="num" title="{{ i(sec.votes[k]) }}">{{ pct(sec.votes[k] / d if d else none, 1) }}</td>{% endfor %}
+        {% if c.rows|length > sec.top|length %}{% set shown = namespace(n=0) %}{% for k in sec.top %}{% set shown.n = shown.n + sec.votes[k] %}{% endfor %}<td class="num muted">{{ pct((sec.votes|sum - shown.n) / d if d else none, 1) }}</td>{% endif %}
+        <td></td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+{% endfor %}
+{% endblock %}

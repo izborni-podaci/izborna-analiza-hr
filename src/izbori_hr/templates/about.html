@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% import "_macros.html" as mx with context %}
+{% block title %}{{ t('about_heading') }}{% endblock %}
+{% block main %}
+<h1>{{ t('about_heading') }}</h1>
+<p class="deck">{{ t('about_lede') }} <a href="{{ serbia_url }}">{{ t('footer_serbia') }}</a></p>
+
+<h2 id="principles">{{ t('principles_heading') }}</h2>
+<ol class="prose">
+  <li>{{ t('pr_same') }}</li>
+  <li>{{ t('pr_question') }}</li>
+  <li>{{ t('pr_primary') }}</li>
+  <li>{{ t('pr_private') }}</li>
+  <li>{{ t('pr_third') }}</li>
+</ol>
+
+<h2 id="sources">{{ t('sources_heading') }}</h2>
+<p>{{ t('sources_text') }}</p>
+<ul class="sources">
+{% for e in elections %}{% set meta = metas[e.id] %}
+  <li><strong>{{ e.title[loc] }}</strong>: <a href="{{ e.page_url }}">{{ t('source_page') }}</a> · <a href="{{ e.zip_url }}">{{ t('source_zip') }}</a> · <a href="{{ repo_url }}/tree/main/data/{{ e.id }}">{{ t('source_raw') }}</a><br><span class="small muted">{{ t('fetched') }} {{ date(meta.fetched) }} · SHA-256 <code>{{ meta.sha256[:16] }}…</code></span></li>
+{% endfor %}
+</ul>
+
+<h2 id="data">{{ t('data_heading') }}</h2>
+<ul class="prose">
+  <li>{{ t('data_kinds') }}</li>
+  <li>{{ t('data_columns') }}</li>
+  <li>{{ t('data_zagreb') }}</li>
+  <li>{{ t('data_president') }}</li>
+  <li>{{ t('seats_rule') }}</li>
+  <li>{{ t('pres_rule') }}</li>
+</ul>
+
+<h2 id="checks">{{ t('checks_heading') }}</h2>
+<p>{{ t('checks_text') }}</p>
+{% for g in groups %}
+<h3 class="group g-{{ g }}"><span class="dot" aria-hidden="true"></span>{{ t('group_' ~ g) }}</h3>
+<p class="muted">{{ t('group_' ~ g ~ '_note') }}</p>
+<ul class="plain">
+{% for c in checks if c.group == g %}
+  <li id="{{ c.code }}">{{ mx.sym(c.code, g) }} <strong>{{ check_name(c.code) }}.</strong> {{ hint(c.code) }}</li>
+{% endfor %}
+</ul>
+{% endfor %}
+<h3>{{ t('rules_link') }}</h3>
+<ul class="prose">
+  <li>{{ t('rule_signed_over_ballots', n=rules.signed_over_ballots_min) }}</li>
+  <li>{{ t('rule_typo', n=rules.typo_min_registered, median=pct(rules.typo_median_below, 0)) }}</li>
+  <li>{{ t('rule_high', turnout=pct(rules.high_turnout, 0), n=rules.min_registered, share=pct(rules.near_share, 0)) }}</li>
+  <li>{{ t('rule_invalid', abs=pct(rules.invalid_abs_share, 0), voted=rules.invalid_abs_min_voted, min=rules.invalid_rel_min, rel_share=pct(rules.invalid_rel_share, 0), factor=num(rules.invalid_rel_factor, 0)) }}</li>
+  <li>{{ t('rule_identical', votes=rules.identical_min_votes, lists=rules.identical_min_lists) }}</li>
+</ul>
+<p>{{ t('stats_about') }}</p>
+{% endblock %}

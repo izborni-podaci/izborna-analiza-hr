@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% import "_macros.html" as mx with context %}
+{% block title %}{{ t('nav_check') }} · {{ rtitle }}{% endblock %}
+{% block main %}
+{{ mx.round_nav('check', t('nav_check')) }}
+<p class="kicker">{{ rtitle }}</p>
+<h1>{{ t('check_heading') }}</h1>
+<p class="principle">{{ t('principle') }}</p>
+<p>{{ t('check_lede') }} <a href="{{ link('about.html') }}#checks">{{ t('rules_link') }}</a></p>
+<p><strong>{{ t('check_count', n=i(cards|length)) }}</strong> · <a href="{{ root }}api/r/{{ view.id }}/flags.csv" download>{{ t('flags_csv') }}</a></p>
+{{ mx.source(view) }}
+
+{% set counts = view.counts %}
+<form class="filters" data-filter-cards="#cards" onsubmit="return false">
+  {% if view.kind == 'parliament' %}
+  <label>{{ t('filter_contest') }}
+    <select data-f="contest">
+      <option value="">{{ t('filter_all') }}</option>
+      {% for cid, c in view.contests.items() if c.flagged %}<option value="{{ cid }}">{{ c.contest.name[loc] }} ({{ i(c.flagged) }})</option>{% endfor %}
+    </select>
+  </label>
+  {% endif %}
+  <label>{{ t('filter_type') }}
+    <select data-f="type">
+      <option value="">{{ t('filter_all') }}</option>
+      {% for g in groups %}
+      <optgroup label="{{ t('group_' ~ g) }}" data-g="{{ g }}">
+        <option value="g-{{ g }}">{{ t('group_' ~ g) }}: {{ t('filter_group_all') }}</option>
+        {% for c in checks if c.group == g and counts[c.code] %}<option value="{{ c.code }}">{{ check_name(c.code) }} ({{ i(counts[c.code]) }})</option>{% endfor %}
+      </optgroup>
+      {% endfor %}
+    </select>
+  </label>
+  <label>{{ t('filter_municipality') }}
+    <select data-f="mun">
+      <option value="">{{ t('filter_all') }}</option>
+      {% for mu in view.municipalities if mu.flagged %}<option value="{{ mu.key }}">{{ name(mu.name) }} ({{ i(mu.flagged) }})</option>{% endfor %}
+    </select>
+  </label>
+  <label>{{ t('filter_search') }} <input type="search" data-f="q" autocomplete="off"></label>
+  <output data-shown="{{ t('filter_shown', n='{n}') }}">{{ t('filter_shown', n=i(cards|length)) }}</output>
+</form>
+
+{% if not cards %}<p>{{ t('no_flags') }}</p>{% endif %}
+<div id="cards" class="cards">
+{% for it in cards %}
+  {% set s = it.s %}
+  <article class="card" data-mun="{{ s.mun_key }}" data-contest="{{ it.contest }}" data-types="{{ it.flags|map(attribute='code')|unique|join(' ') }}" data-text="{{ name(s.municipality) }} {{ s.number }} {{ s.location }} {{ s.address }}">
+    <header>
+      <h2 class="card-title"><a href="{{ link(base ~ 'm/' ~ s.mun_key ~ '.html') }}#{{ it.anchor }}">{{ name(s.municipality) }} · {{ t('station_no') }} {{ s.number }}</a> <span class="muted">{{ s.location }}</span></h2>
+      <p class="muted small">{% if view.kind == 'parliament' %}{{ cname(it.contest) }}{% if s.kind != 'domestic' %} · {% endif %}{% endif %}{% if s.kind != 'domestic' %}{{ t('kind_' ~ s.kind) }}{% endif %}{% if s.unit and s.contest.startswith('XII') and s.kind == 'special' %} · {{ t('unit') }} {{ s.unit }}{% endif %}</p>
+    </header>
+    {{ mx.chips(it.flags) }}
+    <div class="hint small"><strong>{{ t('what_to_check') }}</strong>
+      <ul>{% for code in it.flags|map(attribute='code')|unique %}<li>{{ hint(code) }}</li>{% endfor %}</ul>
+    </div>
+    <p class="numbers small">{% if not s.contest.startswith('XII') %}{{ t('registered') }} {{ i(s.registered) }} · {% endif %}{{ t('voted_register') }} {{ i(s.voted) }}{% if s.turnout is not none and s.kind == 'domestic' and not s.contest.startswith('XII') %} ({{ pct(s.turnout, 1) }}){% endif %} · {{ t('ballots') }} {{ i(s.ballots) }} · {{ t('valid') }} {{ i(s.valid) }} · {{ t('invalid') }} {{ i(s.invalid) }}</p>
+  </article>
+{% endfor %}
+</div>
+{% endblock %}

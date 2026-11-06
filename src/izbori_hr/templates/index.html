@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}{{ t('home_heading') }}{% endblock %}
+{% block main %}
+<section class="hero">
+  <h1>{{ t('home_heading') }}</h1>
+  <p class="deck">{{ t('home_lede') }}</p>
+  <p class="principle">{{ t('principle') }}</p>
+</section>
+
+<h2 id="izbori">{{ t('elections_heading') }}</h2>
+<div class="cards">
+{% for e in elections %}
+  <article class="card">
+    <header><h3 class="card-title">{{ e.title[loc] }}</h3></header>
+    <div class="table-wrap">
+    <table class="compact">
+      <thead><tr><th>{{ t('rounds') }}</th><th>{{ t('election_day') }}</th><th class="num">{{ t('turnout') }}</th><th class="num">{{ t('flagged') }}</th></tr></thead>
+      <tbody>
+      {% for r in e.rounds %}{% set v = by_round[r.id] %}{% set m = v.main %}
+        <tr>
+          <td><a href="{{ link('r/' ~ r.id ~ '/index.html') }}">{{ t('round_n', n=r.number) if e.rounds|length > 1 else t('results_heading') }}</a></td>
+          <td>{{ date(r.date) }}</td>
+          <td class="num">{{ pct(m.turnout, 2) }}</td>
+          <td class="num"><a href="{{ link('r/' ~ r.id ~ '/check.html') }}">{{ i(v.by_station|length) }}</a></td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    </div>
+  </article>
+{% endfor %}
+</div>
+
+<h2>{{ t('home_what') }}</h2>
+<ul>
+  <li>{{ t('home_what_results') }}</li>
+  <li>{{ t('home_what_checks') }}</li>
+  <li>{{ t('home_what_muns') }}</li>
+  <li>{{ t('home_what_stats') }}</li>
+  <li>{{ t('home_what_data') }}</li>
+</ul>
+<p><a href="{{ link('about.html') }}">{{ t('nav_about') }}</a></p>
+{% endblock %}

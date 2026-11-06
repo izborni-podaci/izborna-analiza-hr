@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% import "_macros.html" as mx with context %}
+{% block title %}{{ c.contest.name[loc] }} · {{ rtitle }}{% endblock %}
+{% block main %}
+{{ mx.round_nav('', c.contest.name[loc]) }}
+<p class="kicker">{{ rtitle }}</p>
+<h1>{{ c.contest.name[loc] }}</h1>
+{{ mx.source(view) }}
+{% set minority = c.contest.minority %}
+{{ mx.tiles(c.registered, c.voted, none if minority else c.turnout, c.valid, c.invalid, c.invalid_share, show_registered=not minority) }}
+{% if minority %}<p class="muted small">{{ t('minority_note') }}</p>{% endif %}
+
+<h2>{{ t('results_heading') }}</h2>
+{{ mx.results_table(c) }}
+{% if c.contest.votes_per_voter > 1 %}<p class="rule">{{ t('serb_note') }}</p>{% endif %}
+<p class="rule">{{ t('seats_rule') }}</p>
+
+<h2>{{ t('check_heading') }}</h2>
+<p>{{ t('check_count', n=i(c.flagged)) }}{% if c.flagged %} · <a href="{{ link(base + 'check.html') }}#c-{{ c.id }}">{{ t('see_all_flags') }}</a>{% endif %}</p>
+
+<h2>{{ t('unit_muns') }}</h2>
+<ul class="plain key">
+{% for key, mname in c.muns %}<li><a href="{{ link(base ~ 'm/' ~ key ~ '.html') }}#u-{{ c.id }}">{{ name(mname) }}</a></li>
+{% endfor %}
+</ul>
+{% endblock %}

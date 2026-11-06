@@ -1,0 +1,129 @@
+{# One symbol per check: the shape says which check, the colour which group. Always next to the check's name. #}
+{% macro sym(code, group) %}<svg class="sym g-{{ group }}" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+{% if code == 'signed_over_ballots' %}<rect x="3" y="3" width="10" height="10" fill="currentColor"/>
+{% elif code == 'ballots_over_signed' %}<rect x="2.5" y="2.5" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 5.2v5.6M5.2 8h5.6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+{% elif code == 'sum_mismatch' %}<path d="M12 3H4.2l4.3 5-4.3 5H12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+{% elif code == 'ballot_mismatch' %}<path d="M3 6h10M3 10.5h10M10.6 2.6 5.4 13.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+{% elif code == 'signed_over_registered' %}<path d="M3 2.8h10M8 13.5V6M5 9l3-3 3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+{% elif code == 'full_turnout_typo' %}<circle cx="8" cy="8" r="5.6" fill="currentColor"/>
+{% elif code == 'correction_still_odd' %}<path d="M3 13l.9-3.4 6.6-6.6 2.5 2.5-6.6 6.6z" fill="currentColor" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+{% elif code == 'changed' %}<path d="M12.8 8a4.8 4.8 0 1 1-1.4-3.4M12.8 2.6v3.2H9.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+{% elif code == 'minutes_replaced' %}<path d="M4 1.8h5.2l3 3v9.4H4zM9 1.8v3.2h3.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+{% elif code == 'correction_unapplied' %}<path d="M3 13l.9-3.4 6.6-6.6 2.5 2.5-6.6 6.6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+{% elif code == 'invalid_spike' %}<path d="M3.8 3.8l8.4 8.4M12.2 3.8l-8.4 8.4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+{% elif code == 'turnout_jump' %}<path d="M8 2.6l6 10.4H2z" fill="currentColor"/>
+{% elif code == 'turnout_drop' %}<path d="M8 13.4L2 3h12z" fill="currentColor"/>
+{% elif code == 'near_unanimity' %}<path d="M5.6 4.6 8.8 2.6v10.8M5.6 13.4h6.4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>
+{% elif code == 'high_turnout' %}<path d="M3.6 8.6 8 4.2l4.4 4.4M3.6 12.8 8 8.4l4.4 4.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+{% elif code == 'identical_results' %}<path d="M3 5.6h10M3 10.4h10" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+{% elif code == 'voting_annulled' %}<circle cx="8" cy="8" r="5.4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M4.2 11.8 11.8 4.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+{% elif code == 'results_undetermined' %}<rect x="2.6" y="2.6" width="10.8" height="10.8" rx="1" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5.4 8h5.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+{% elif code == 'remark_filed' %}<path d="M2.6 3.2h10.8v7.2H7.2l-3.2 2.6v-2.6H2.6z" fill="currentColor"/>
+{% elif code == 'observer_remarks' %}<path d="M1.6 8s2.4-4.2 6.4-4.2 6.4 4.2 6.4 4.2-2.4 4.2-6.4 4.2S1.6 8 1.6 8z" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="2" fill="currentColor"/>
+{% else %}<circle cx="8" cy="8" r="4" fill="currentColor"/>{% endif %}</svg>{% endmacro %}
+
+{% macro crumbs(items) %}
+<nav class="crumbs" aria-label="{{ t('crumbs_label') }}"><ol>
+{% for label, href in items %}<li>{% if href %}<a href="{{ href }}">{{ label }}</a>{% else %}<span aria-current="page">{{ label }}</span>{% endif %}</li>{% endfor %}
+</ol></nav>
+{% endmacro %}
+
+{% macro round_nav(current, last=none) %}
+{% set trail = [(t('crumbs_home'), link('index.html'))] %}
+{% if current == 'index' %}{% set trail = trail + [(rshort, none)] %}
+{% elif last %}{% set trail = trail + [(rshort, link(base + 'index.html')), (last, none)] %}
+{% else %}{% set trail = trail + [(rshort, link(base + 'index.html'))] %}{% endif %}
+{{ crumbs(trail) }}
+<nav class="round-nav" aria-label="{{ t('nav_round') }}">
+  <a href="{{ link(base + 'index.html') }}"{% if current == 'index' %} aria-current="page"{% endif %}>{{ t('results_heading') }}</a>
+  <a href="{{ link(base + 'check.html') }}"{% if current == 'check' %} aria-current="page"{% endif %}>{{ t('nav_check') }}</a>
+  <a href="{{ link(base + 'index.html') }}#municipalities">{{ t('municipalities_heading') }}</a>
+  <a href="{{ link(base + 'index.html') }}#stats">{{ t('stats_heading') }}</a>
+</nav>
+{% endmacro %}
+
+{% macro chips(flags) %}
+<ul class="flags">
+  {% for f in flags %}
+  <li class="flag g-{{ f.check.group }}">{{ sym(f.code, f.check.group) }}<span><strong>{{ check_name(f.code) }}.</strong> {{ flag_text(f) }}</span></li>
+  {% endfor %}
+</ul>
+{% endmacro %}
+
+{% macro spotlight(counts, n, total, href) %}
+<p class="big-number"><strong>{{ i(n) }}</strong> {{ t('spotlight_rest', total=i(total), share=pct(n / total if total else none, 1)) }}</p>
+<div class="chips">
+{% for g in groups %}{% for c in checks if c.group == g and counts.get(c.code) %}
+  <a class="chip g-{{ g }}" href="{{ href }}#{{ c.code }}">{{ sym(c.code, g) }}<span>{{ check_name(c.code) }}</span><strong>{{ i(counts[c.code]) }}</strong></a>
+{% endfor %}{% endfor %}
+</div>
+<p><a class="button" href="{{ href }}">{{ t('see_all_flags') }}</a></p>
+{% endmacro %}
+
+{% macro groups_list(counts, href) %}
+<details class="groups-more"><summary>{{ t('groups_explained') }}</summary>
+<div class="groups">
+{% for g in groups %}
+  <div class="group g-{{ g }}">
+    <h3><span class="dot" aria-hidden="true"></span>{{ t('group_' ~ g) }}</h3>
+    <p class="muted">{{ t('group_' ~ g ~ '_note') }}</p>
+    <ul class="plain">
+    {% for c in checks if c.group == g %}
+      <li>{% if counts[c.code] %}<a href="{{ href }}#{{ c.code }}">{{ check_name(c.code) }}</a>{% else %}<span class="muted">{{ check_name(c.code) }}</span>{% endif %} <span class="count">{{ i(counts[c.code]) }}</span></li>
+    {% endfor %}
+    </ul>
+  </div>
+{% endfor %}
+</div>
+<p><a href="{{ link('about.html') }}#checks">{{ t('rules_link') }}</a></p>
+</details>
+{% endmacro %}
+
+{% macro source(view) %}
+<p class="data-note">{{ t('source') }}: <a href="{{ view.election.page_url }}">{{ t('source_page') }}</a> · <a href="{{ view.election.zip_url }}">{{ t('source_zip') }}</a> · <a href="{{ repo_url }}/tree/main/data/{{ view.election.id }}/raw">{{ t('source_raw') }}</a> · {{ t('fetched') }} {{ date(view.meta.fetched) }}</p>
+{% endmacro %}
+
+{% macro tiles(registered, voted, turnout, valid, invalid, invalid_share, show_registered=true) %}
+<section class="tiles">
+  {% if show_registered %}<div class="tile"><p class="tile-label">{{ t('registered') }}</p><p class="tile-value">{{ i(registered) }}</p></div>{% endif %}
+  <div class="tile"><p class="tile-label">{{ t('voted') }}</p><p class="tile-value">{{ i(voted) }}</p>{% if turnout is not none %}<p class="tile-sub">{{ t('turnout') }} {{ pct(turnout, 2) }}</p>{% endif %}</div>
+  <div class="tile"><p class="tile-label">{{ t('valid') }}</p><p class="tile-value">{{ i(valid) }}</p></div>
+  <div class="tile"><p class="tile-label">{{ t('invalid') }}</p><p class="tile-value">{{ i(invalid) }}</p><p class="tile-sub">{{ pct(invalid_share, 2) }}</p></div>
+</section>
+{% endmacro %}
+
+{# a contest's lists or candidates: votes, share, a bar with the threshold or the half marked, seats #}
+{% macro results_table(c) %}
+{% set lists = c.contest.lists %}
+{% set marker = (0.05 if lists else 0.5 if c.id == 'RH' else none) %}
+{% set top = (c.rows|map(attribute='share')|reject('none')|max) if c.rows else 0 %}
+<div class="table-wrap">
+<table class="results">
+  <thead><tr>
+    <th class="num">{{ t('no') }}</th>
+    <th>{{ t('list') if lists else t('candidate') }}</th>
+    <th class="num" data-sort>{{ t('votes') }}</th>
+    <th class="num" data-sort>{{ t('share_voted') if c.denominator == 'voted' else t('share_valid') }}</th>
+    {% if c.id == 'RH' %}<th class="num" data-sort>{{ t('share_valid') }}</th>{% endif %}
+    <th class="bar-col"><span class="visually-hidden">{{ t('share_valid') }}</span></th>
+    {% if c.id != 'RH' or c.won %}<th class="num" data-sort>{{ t('seats') if c.id != 'RH' else t('status') }}</th>{% endif %}
+  </tr></thead>
+  <tbody>
+  {% for r in c.rows %}
+    <tr{% if lists and not r.eligible %} class="dim"{% endif %}>
+      <td class="num">{{ r.index + 1 }}</td>
+      <td>{{ r.name }}</td>
+      <td class="num" data-v="{{ r.votes }}">{{ i(r.votes) }}</td>
+      <td class="num" data-v="{{ r.share if r.share is not none else '' }}">{{ pct(r.share, 2) }}</td>
+      {% if c.id == 'RH' %}<td class="num" data-v="{{ r.votes / c.valid if c.valid else '' }}">{{ pct(r.votes / c.valid if c.valid else none, 2) }}</td>{% endif %}
+      <td class="bar-col"><div class="barbox"><span class="hbar" style="width: {{ '%.2f'|format(100 * r.bar) }}%"></span>{% if marker is not none and top and marker <= top %}<span class="hmark" style="left: {{ '%.2f'|format(100 * marker / top) }}%"></span>{% endif %}</div></td>
+      {% if c.id != 'RH' %}<td class="num" data-v="{{ r.seats }}">{% if r.seats %}<strong>{{ r.seats }}</strong>{% elif lists and not r.eligible %}<span class="muted small">{{ t('below_threshold') }}</span>{% else %}0{% endif %}</td>
+      {% elif c.won %}<td class="num">{% if r.seats %}<strong>{{ t('elected') }}</strong>{% endif %}</td>{% endif %}
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% if lists %}<p class="rule">{{ t('threshold_line', n=i(c.threshold_votes)) }} {{ t('marker_threshold') }}</p>
+{% elif c.id == 'RH' %}<p class="rule">{{ t('marker_half') }}</p>{% endif %}
+{% endmacro %}

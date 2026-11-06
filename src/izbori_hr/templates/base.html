@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="{{ lang }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{% block title %}{{ t('site_name') }}{% endblock %} · {{ t('site_name') }}</title>
+<meta name="description" content="{{ t('tagline') }}">
+<meta name="referrer" content="no-referrer">
+<link rel="stylesheet" href="{{ root }}static/fonts.css">
+<link rel="stylesheet" href="{{ root }}static/site.css">
+<script>try { var th = localStorage.getItem('theme'); if (th === 'dark' || th === 'light') document.documentElement.dataset.theme = th; } catch (e) {}</script>
+{% for l in langs %}<link rel="alternate" hreflang="{{ l.lang }}" href="{{ l.href }}">
+{% endfor %}
+</head>
+<body>
+<header class="top">
+  <div class="wrap top-row">
+    <a class="brand" href="{{ link('index.html') }}">{{ t('site_name') }}</a>
+    <nav class="main-nav" aria-label="{{ t('nav_main') }}">
+      <a href="{{ link('index.html') }}#izbori"{% if page.startswith('r/') %} aria-current="page"{% endif %}>{{ t('nav_elections') }}</a>
+      <a href="{{ link('about.html') }}"{% if page == 'about.html' %} aria-current="page"{% endif %}>{{ t('nav_about') }}</a>
+    </nav>
+    <div class="top-tools">
+      <details class="menu">
+        <summary><span class="visually-hidden">{{ t('menu_label') }}: </span>{{ {'hr': 'HR', 'en': 'EN'}[loc] }}<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 9l6 6 6-6"/></svg></summary>
+        <div class="menu-panel">
+          <nav class="langs" aria-label="Language">
+            {% for l in langs %}<a href="{{ l.href }}" lang="{{ l.lang }}" hreflang="{{ l.lang }}"{% if l.current %} aria-current="page"{% endif %}>{{ l.label }}</a>{% endfor %}
+          </nav>
+          <button type="button" class="theme-toggle" data-theme-toggle data-dark="{{ t('theme_dark') }}" data-light="{{ t('theme_light') }}" hidden>{{ t('theme_dark') }}</button>
+        </div>
+      </details>
+    </div>
+  </div>
+</header>
+<main class="wrap">
+{% block main %}{% endblock %}
+</main>
+<footer class="wrap foot">
+  <p>{{ t('footer_data') }}</p>
+  <p><a href="{{ repo_url }}">{{ t('footer_code') }}</a> · <a href="{{ serbia_url }}">{{ t('footer_serbia') }}</a></p>
+</footer>
+<script src="{{ root }}static/site.js" defer></script>
+</body>
+</html>

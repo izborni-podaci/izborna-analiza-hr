@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}{{ t('not_found') }}{% endblock %}
+{% block main %}
+<h1>{{ t('not_found') }}</h1>
+<p>{{ t('not_found_text') }} <a href="/izborna-analiza-hr/">{{ t('crumbs_home') }}</a></p>
+<p lang="en">This page doesn't exist. <a href="/izborna-analiza-hr/en/">Home</a></p>
+{% endblock %}
