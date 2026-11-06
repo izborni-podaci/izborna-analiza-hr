@@ -1,0 +1,29 @@
+{
+ "source": "https://www.izbori.hr/arhiva-izbora/data/parlament/2000/zip/rezultati.zip",
+ "page": "https://www.izbori.hr/arhiva-izbora/#/app/parlament-2000",
+ "fetched": "2026-11-06T03:52:27+00:00",
+ "sha256": "ae24bbc11e21453cf56a695d02e78151a31f2631aa87dced0b0d5423c1e06e90",
+ "files": {
+  "RezultatiPoBM/CSV/ij01_Stranke.csv": "18a2a0ccb6ed344068f00447fee76da572371a47b7399b26818c1abd2ee1a855",
+  "RezultatiPoBM/CSV/ij01_ij01.csv": "597e66aa74f5e2ee81db79a53d29e76f34f38a242476371bd63bdd4b425996d4",
+  "RezultatiPoBM/CSV/ij02_Stranke.csv": "d9dbf734c110487b21fd9f913e55093c60fa3e0fa5a74cead09cabcfa4f4191d",
+  "RezultatiPoBM/CSV/ij02_ij02.csv": "04f0eb23194d5a2892ee87cade3e0859253daf064baab01e2820f861b1b8c5c9",
+  "RezultatiPoBM/CSV/ij03_2000_varazdinska_zupanija_Sheet1.csv": "bffe109483c058ed41b2d872e7af0d985337a1202b64d117db9e8e6af7d10508",
+  "RezultatiPoBM/CSV/ij03_Stranke.csv": "b4ca4d48a6ddeca337979e0b68e4ece88f25f15b888c5a94a34ac25c45a47c52",
+  "RezultatiPoBM/CSV/ij03_ij03.csv": "5720580c814de73b95f542ec0beecde3d271cde45494241cd1810bf6cfca78a3",
+  "RezultatiPoBM/CSV/ij04_Stranke.csv": "2372ea9bf24224903b0d1ede9faed8f20944aa1b0737d00277ff41598dfbc1be",
+  "RezultatiPoBM/CSV/ij04_ij04.csv": "962a0a0f221874df702a9557ecf97004156299ca6be4d1d5575986c981ed0203",
+  "RezultatiPoBM/CSV/ij05_Stranke.csv": "fa424c7dd2cf7bb2d056db01f37c17caf2abe63375d6b7c049bd8ca7c5dcaef6",
+  "RezultatiPoBM/CSV/ij05_ij05.csv": "fe5e078b252aab414280d900a208e958bd5062e110e3b66d70ba4d2412a83783",
+  "RezultatiPoBM/CSV/ij06_Stranke.csv": "f68c8058077866d241dca7823d4fd0f117469f367851320de587333639529d5f",
+  "RezultatiPoBM/CSV/ij06_ij06.csv": "7f63e7100864934326bb859f4ad96072f474b5d0346d3d265f889b1b2b2e84e6",
+  "RezultatiPoBM/CSV/ij07_Stranke.csv": "aa66bd51858918c3d4015186ff7c67a7620aeb8cd9b803767bde653d9001f89e",
+  "RezultatiPoBM/CSV/ij07_ij07.csv": "4a330f2e92b9bdc392b00841d6293179486e3aaab0826892d038fedcacad7000",
+  "RezultatiPoBM/CSV/ij08_Stranke.csv": "21bb32c51a4191ba476245a48832c4ae6a96f471e34815ef03a5147b5f926d0e",
+  "RezultatiPoBM/CSV/ij08_ij08.csv": "d0989fd19193e23b5a2f312c79ea24b850679d84a98cb30629f31d3cf3217dd2",
+  "RezultatiPoBM/CSV/ij09_Stranke.csv": "c40a61314b152597dc1df9c25d30e5fb6a34730a7745a7352ddd13eb1a4718a0",
+  "RezultatiPoBM/CSV/ij09_ij09.csv": "9af7c36c314fd2deb3de99632264d471cd966e5ce85dd3f71681b72c8ad41870",
+  "RezultatiPoBM/CSV/ij10_Stranke.csv": "d076387240f24f1560eabd312db9ad271c5a7d1bca13b44fdf3f00db66edfb7c",
+  "RezultatiPoBM/CSV/ij10_ij10.csv": "3d761b23c199f5637862b628742a36e073e73f2721cac6b028012393f922d587"
+ }
+}

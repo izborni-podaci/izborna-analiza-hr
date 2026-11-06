@@ -1,0 +1,12 @@
+{
+ "source": "https://www.izbori.hr/arhiva-izbora/data/predsjednik/2014/zip/rezultati.zip",
+ "page": "https://www.izbori.hr/arhiva-izbora/#/app/predsjednik-2014",
+ "fetched": "2026-11-06T03:50:58+00:00",
+ "sha256": "dc22f0a0392fbce83d17c402b62b4268fa8fcc060aebae623d032ca02b0ce6e8",
+ "files": {
+  "2014_Predsjednik/1_krug/2014_Predsjednik_1_krug_rezultati_po_birackim_mjestima.xlsx": "087e738a9843df1192ff0cf6524cfa643a295ebd922446a734f0db217e03ce3e",
+  "2014_Predsjednik/1_krug/2014_Predsjednik_1_krug_rezultati_po_birackim_mjestima_rezultati.csv": "7609ffe64828738fd29afced5786a83c4e391f6e4ea9ef6690eca4de6e7ab53f",
+  "2014_Predsjednik/2_krug/2014_Predsjednik_2_krug_rezultati_po_birackim_mjestima.xlsx": "1fbcd84e1d6078dea1df4c068854944af6cb5939145fac2daa15bd9fd2414d9b",
+  "2014_Predsjednik/2_krug/2014_Predsjednik_2_krug_rezultati_po_birackim_mjestima_rezultati.csv": "a34d4b2741deac3771f52134bf1293601d7274556bc89da046c8631a3e658bf9"
+ }
+}

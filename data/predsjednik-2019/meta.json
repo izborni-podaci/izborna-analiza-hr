@@ -1,0 +1,10 @@
+{
+ "source": "https://www.izbori.hr/arhiva-izbora/data/predsjednik/2019/zip/rezultati.zip",
+ "page": "https://www.izbori.hr/arhiva-izbora/#/app/predsjednik-2019",
+ "fetched": "2026-11-06T03:49:50+00:00",
+ "sha256": "bb194718dacf5567d6164531cbd5923416a798065813624a8b22f177bda27b21",
+ "files": {
+  "rezultati_2019/1_krug/rezultati_bm(1).xlsx": "8f0e66fafd5b155ccf514796a2f30b9f8102640586eb891f596016466fa4cf0e",
+  "rezultati_2019/2_krug/rezultati_bm(2).xlsx": "6d0bd2dc47f037f961460430778663beebf0c6539968aeb946c5aa35e7a010b3"
+ }
+}

@@ -1,0 +1,14 @@
+{
+ "source": "https://www.izbori.hr/arhiva-izbora/data/predsjednik/2000/zip/rezultati.zip",
+ "page": "https://www.izbori.hr/arhiva-izbora/#/app/predsjednik-2000",
+ "fetched": "2026-11-06T03:52:31+00:00",
+ "sha256": "892a87d5a803c7a404f45109a756571ba97015b9be4f6bab394d85a947aa771e",
+ "files": {
+  "CSV/Predsjednik 2000 po BM - 1. krug_Prvi krug RH.csv": "3b377c2692a384acb935e1d31b124f563e1f1d3f4cc33396b2a621b4e7f14014",
+  "CSV/Predsjednik 2000 po BM - 1. krug_Prvi krug inozemstvo.csv": "402bc269863419f21f21520108dc992b2c5126755449bc916df9d236ec5ed280",
+  "CSV/Predsjednik 2000 po BM - 2. krug_Drugi krug RH.csv": "829f26da69077504aeff9c7326d703fb8015ccb1c34a4b80edd7840973c6ca5b",
+  "CSV/Predsjednik 2000 po BM - 2. krug_Drugi krug inozemstvo.csv": "00c5068b327e2640fafcdd3381becc64b75eadc130b5f401bfd68026def36d7c",
+  "Excel/Predsjednik 2000 po BM - 1. krug.xlsx": "0fac297041742c38f9f3f47b2ae8c89c00791634dea5315d966e5a30d2b16d34",
+  "Excel/Predsjednik 2000 po BM - 2. krug.xlsx": "74438aed7553f78e39928999fbee154f94b206bfe3b1b2a9fca00831cda6a723"
+ }
+}
