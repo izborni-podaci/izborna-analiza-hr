@@ -1,10 +1,11 @@
 {
  "source": "https://www.izbori.hr/arhiva-izbora/data/parlament/2000/zip/rezultati.zip",
  "page": "https://www.izbori.hr/arhiva-izbora/#/app/parlament-2000",
- "fetched": "2026-11-06T03:52:27+00:00",
+ "fetched": "2026-11-06T04:04:06+00:00",
  "sha256": "ae24bbc11e21453cf56a695d02e78151a31f2631aa87dced0b0d5423c1e06e90",
  "keep": [
-  "RezultatiPoBM/CSV/*.csv"
+  "RezultatiPoBM/CSV/*.csv",
+  "RezultatiPoBM/Excel/*.xlsx"
  ],
  "files": {
   "RezultatiPoBM/CSV/ij01_Stranke.csv": "18a2a0ccb6ed344068f00447fee76da572371a47b7399b26818c1abd2ee1a855",
@@ -27,6 +28,16 @@
   "RezultatiPoBM/CSV/ij09_Stranke.csv": "c40a61314b152597dc1df9c25d30e5fb6a34730a7745a7352ddd13eb1a4718a0",
   "RezultatiPoBM/CSV/ij09_ij09.csv": "9af7c36c314fd2deb3de99632264d471cd966e5ce85dd3f71681b72c8ad41870",
   "RezultatiPoBM/CSV/ij10_Stranke.csv": "d076387240f24f1560eabd312db9ad271c5a7d1bca13b44fdf3f00db66edfb7c",
-  "RezultatiPoBM/CSV/ij10_ij10.csv": "3d761b23c199f5637862b628742a36e073e73f2721cac6b028012393f922d587"
+  "RezultatiPoBM/CSV/ij10_ij10.csv": "3d761b23c199f5637862b628742a36e073e73f2721cac6b028012393f922d587",
+  "RezultatiPoBM/Excel/ij01.xlsx": "ecbb2c088c9fcfc463c8927fef15a6398dc75b84bb6d4b6e988e971fb6f1718e",
+  "RezultatiPoBM/Excel/ij02.xlsx": "86c161e60e41f232b6ad43374239f005e034a0ae252d228eef15eff4ebe32e28",
+  "RezultatiPoBM/Excel/ij03.xlsx": "a6cd3c84c977faf2f169ebdde25d40d53ee49c79a6f91bbaac87703015aa27dc",
+  "RezultatiPoBM/Excel/ij04.xlsx": "c7a8007661ce641c8d629949fc79416e6f041868faacd1607444c2e5812fdd12",
+  "RezultatiPoBM/Excel/ij05.xlsx": "1d454d40e344088f3a2bd8659643a017bf4c6de80764f604e22022e2f035a265",
+  "RezultatiPoBM/Excel/ij06.xlsx": "23b05fd23b7e35dd92a533016232f52f9ff2f5f481fe6afee9b4f6738db87b89",
+  "RezultatiPoBM/Excel/ij07.xlsx": "600e25b6c40e159fd03e36d9730c203b60221c0d04ce271879fdc4c9b896a804",
+  "RezultatiPoBM/Excel/ij08.xlsx": "782cf90d8d4a2f9053f4ad560acdc9161822c82307aea58dc8b5b5c725d040b9",
+  "RezultatiPoBM/Excel/ij09.xlsx": "662624e3fee594cc3421f44df9e5a0720d8b1a2125b4f73d66ab85c76f516dd1",
+  "RezultatiPoBM/Excel/ij10.xlsx": "6011f40296e81483a7ef2b3bec7cf01930704de24828c0cb58fdeb91b19090e6"
  }
 }
