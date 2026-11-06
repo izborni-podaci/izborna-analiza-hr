@@ -11,19 +11,28 @@ A flag is a question, not a verdict: "unusual, check the record", never "fraud".
 
 ## Elections
 
-| Election | Rounds | DIP's page |
-|---|---|---|
-| Parliament (Hrvatski sabor) 2024 | 17 April 2024 | [parlament-2024](https://www.izbori.hr/arhiva-izbora/#/app/parlament-2024) |
-| President 2024–25 | 29 December 2024, 12 January 2025 | [predsjednik-2024](https://www.izbori.hr/arhiva-izbora/#/app/predsjednik-2024) |
+Every election DIP's archive has by polling station: the archive starts in 2000, and earlier elections are PDF
+reports only.
+
+| Parliament (Hrvatski sabor) | President |
+|---|---|
+| 2024, 2020, 2016, 2015, 2011, 2007, 2003, 2000 | 2024–25, 2019–20, 2014–15, 2009–10, 2005, 2000 (both rounds) |
 
 An election is added in `src/izbori_hr/elections.py` (its folder in DIP's archive, its rounds and the files that
-hold them), then fetched with the **data** workflow.
+hold them), then fetched with the **data** workflow. It stays off the site (`published=False`) until its files
+are read.
+
+Each era of DIP's files has its own layout (`formats.py`); the columns are read by their names. What a file
+lacks is not made up, and the round's pages say so: the president's files of 2000 and 2009 and the parliament's of
+2000 give no ballots in the box (valid plus invalid ballots stand in), those of 2003 and 2005 only the voters
+counted by the ballots, the president's of 2000 the votes abroad by country, and the parliament's of 2000
+constituencies I–X only.
 
 ## What the site shows
 
 - **Results and seats** for each round. The parliament's seats are computed from the votes by polling station as the
   law allocates them (D'Hondt among lists with 5% of the valid votes in constituencies I–XI; the minorities'
-  candidates with most votes in XII) and equal DIP's official result. Lists are added up nationally by the first
+  candidates with most votes in XII) and equal the official result of every election since 2000. Lists are added up nationally by the first
   party each names. Who of a list takes its seats (preferential votes) is not computed.
 - **Checks** of every polling station, in two groups:
   - *the numbers don't add up*: votes against valid ballots, valid and invalid against the ballots, ballots against
@@ -53,8 +62,8 @@ A file is written only when DIP's zip changed, so the git history records what D
 ```
 uv sync
 uv run izbori-hr fetch [election ...]   # download DIP's zips; writes only what changed
-uv run izbori-hr site --out _site       # build the site (about 15 s)
-uv run pytest -q                        # every test (about 30 s)
+uv run izbori-hr site --out _site       # build the site (about 80 s, 400 MB)
+uv run pytest -q                        # every test (about 2 minutes)
 ```
 
 ## Workflows
@@ -71,7 +80,8 @@ uv run pytest -q                        # every test (about 30 s)
 |---|---|
 | `elections.py` | the elections, their rounds, DIP's URLs |
 | `fetch.py` | download a zip, keep the results files, record `meta.json` |
-| `results.py` | read the parliament's CSV and the president's XLSX into stations and contests |
+| `results.py` | stations and contests; reads the parliament's CSV since 2015 and the president's XLSX since 2014 |
+| `formats.py` | DIP's older layouts (parliament 2000–2011, president 2000–2009), read by their columns' names |
 | `seats.py` | D'Hondt and the minorities' seats |
 | `checks.py` | the station checks and their thresholds |
 | `stats.py` | last digits, round percentages, per-municipality tests |

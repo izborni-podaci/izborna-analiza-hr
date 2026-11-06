@@ -118,19 +118,41 @@ S: dict[str, tuple[str, str]] = {
     "units_ran": ("Jedinice", "Constituencies"),
     "minorities": ("Nacionalne manjine (XII. jedinica)", "National minorities (constituency XII)"),
     "majority_line": ("većina: {n}", "majority: {n}"),
-    "seats_rule": ("Mandati po Zakonu o izborima zastupnika u Hrvatski sabor (NN 98/19): u jedinicama I–X bira se po "
-                   "14 zastupnika, u XI. tri, D'Hondtovom metodom među listama s najmanje 5 % važećih glasova u "
-                   "jedinici (čl. 40. i 41.). Pripadnici nacionalnih manjina u XII. jedinici biraju osam zastupnika: "
+    "seats_rule": ("Mandati po Zakonu o izborima zastupnika u Hrvatski sabor (danas NN 98/19, ranije kako je tada "
+                   "glasio): u jedinicama I–X bira se po 14 zastupnika, u XI. {xi}, D'Hondtovom metodom među listama "
+                   "s najmanje 5 % važećih glasova u jedinici (čl. 40. i 41.). Pripadnici nacionalnih manjina u XII. jedinici biraju osam zastupnika: "
                    "izabrani su kandidati s najviše glasova (čl. 16., 17. i 46.). Raspodjela se ovdje računa iz "
                    "glasova po biračkim mjestima i jednaka je službenom rezultatu. Tko s liste dobiva mandat "
-                   "(preferencijski glasovi, čl. 40.) ovdje se ne računa.",
-                   "Seats as the Act on the Election of Representatives to the Croatian Parliament (OG 98/19) "
-                   "allocates them: 14 in each of constituencies I–X and 3 in XI, by the D'Hondt method among the "
+                   "(preferencijski glasovi od 2015., čl. 40.) ovdje se ne računa.",
+                   "Seats as the Act on the Election of Representatives to the Croatian Parliament (today OG 98/19, "
+                   "before as it then stood) allocates them: 14 in each of constituencies I–X and {xi} in XI, by the "
+                   "D'Hondt method among the "
                    "lists with at least 5% of the valid votes in the constituency (Art. 40 and 41). The national "
                    "minorities elect eight representatives in constituency XII: the candidates with the most votes "
                    "(Art. 16, 17 and 46). The allocation here is computed from the votes by polling station and "
-                   "equals the official result. Who on a list takes its seats (preferential votes, Art. 40) is not "
-                   "computed here."),
+                   "equals the official result. Who on a list takes its seats (preferential votes since 2015, Art. 40) "
+                   "is not computed here."),
+
+    # what a round's files lack
+    "note_ballots_derived": ("DIP-ove datoteke ovog kruga ne navode broj listića u kutiji: umjesto njega stoji zbroj "
+                             "važećih i nevažećih listića, pa se potpisi uspoređuju s njim, a provjera „važeći i "
+                             "nevažeći ne daju broj listića” se ne radi.",
+                             "DIP's files for this round don't give the ballots in the box: valid plus invalid "
+                             "ballots stand in for them, signatures are compared with that sum, and the check “valid "
+                             "and invalid don't make the ballots” isn't made."),
+    "note_voted_from_ballots": ("DIP-ove datoteke ovog kruga navode samo broj glasovalih po listićima: on stoji i za "
+                                "broj glasovalih po popisu birača, pa se potpisi i listići ne mogu usporediti.",
+                                "DIP's files for this round give only the voters counted by the ballots: that number "
+                                "stands for the register's count too, so signatures and ballots can't be compared."),
+    "note_abroad_by_country": ("Glasovi iz inozemstva u DIP-ovim su datotekama zbrojeni po državama, ne po biračkim "
+                               "mjestima.",
+                               "DIP's files add up the votes abroad by country, not by polling station."),
+    "note_no_xi_xii": ("DIP-ova arhiva za ove izbore ima rezultate po biračkim mjestima samo za jedinice I–X: XI. "
+                       "jedinica (birači bez prebivališta u Hrvatskoj) i nacionalne manjine nisu uključeni, pa ni "
+                       "njihovi mandati.",
+                       "DIP's archive for this election has results by polling station for constituencies I–X "
+                       "only: constituency XI (voters living abroad) and the national minorities are not included, "
+                       "nor their seats."),
     "units_heading": ("Izborne jedinice", "Constituencies"),
     "unit": ("Izborna jedinica", "Constituency"),
     "unit_seats": ("Raspodjela mandata", "Seats won"),
@@ -303,6 +325,24 @@ S: dict[str, tuple[str, str]] = {
                     "numbering its own stations; the presidential election has the City of Zagreb whole."),
     "data_president": ("U predsjedničkim datotekama posebna biračka mjesta imaju brojeve od 901.",
                        "In the presidential files special stations are numbered from 901."),
+    "data_older": ("Starije DIP-ove datoteke svaka su na svoj način: 2007. i 2011. izvještaji po jedinicama s "
+                   "posebnim biračkim mjestima i onima u inozemstvu, 2003. redovita i „mješovita” biračka mjesta "
+                   "(veleposlanstva, klubovi u inozemstvu, prognanici, ustanove), 2000. liste samo pod brojevima. "
+                   "Čitaju se po nazivima stupaca, a zbrojevi su jednaki DIP-ovim zbrojevima u istim datotekama. Što "
+                   "datoteka nema, ne izmišlja se: stranica kruga to kaže.",
+                   "DIP's older files each have their own layout: 2007 and 2011 reports by constituency with special "
+                   "stations and those abroad, 2003 regular and “mixed” stations (embassies, clubs abroad, displaced "
+                   "persons, institutions), 2000 lists by number only. They are read by their columns' names, and "
+                   "the totals equal DIP's own totals in the same files. What a file lacks isn't made up: the "
+                   "round's page says so."),
+    "data_2000": ("2000., V. jedinica: DIP-ov popis ima 26 lista, a datoteka 25 stupaca koji daju zbroj važećih "
+                  "listića. Lista 19 (Nova Hrvatska) nema stupca: stupac 19 ima glasove Partije podunavskih Srba "
+                  "(Trpinja, Vukovar, Negoslavci, Borovo), a stupac 22 26,7 % koalicije SDP-a i HSLS-a, čijih pet "
+                  "mandata ondje daje njezinih 71 iz službenog rezultata.",
+                  "2000, constituency V: DIP's list has 26 lists and the file 25 columns, which make the valid "
+                  "ballots. List 19 (Nova Hrvatska) has no column: column 19 holds the votes of the Party of Danube "
+                  "Serbs (Trpinja, Vukovar, Negoslavci, Borovo), column 22 the 26.7% of the SDP–HSLS coalition, "
+                  "whose five seats there make its 71 of the official result."),
     "checks_heading": ("Provjere i pragovi", "Checks and thresholds"),
     "checks_text": ("Provjere su iste kao u arhivi za Srbiju. Svaka je pitanje o jednom biračkom mjestu; pragovi su "
                     "isti za sve.",
@@ -491,8 +531,8 @@ def nice(name: str) -> str:
             words.append(word)
         elif i and low in SMALL:
             words.append(low)
-        else:
-            words.append("-".join(p[:1].upper() + p[1:] for p in low.split("-")))
+        else:  # every part after a hyphen, comma, bracket or full stop: "Zagreb-Centar,Zapad", "U.K. V.Britanije"
+            words.append(re.sub(r"(^|[-,(.])(\w)", lambda m: m[1] + m[2].upper(), low))
     return " ".join(words)
 
 

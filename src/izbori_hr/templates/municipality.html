@@ -38,8 +38,9 @@
       {% set fl = view.by_station.get((s.contest, s.key), []) %}
       {% set d = s.voted if denom == 'voted' else s.valid %}
       <tr id="s-{{ s.contest }}-{{ s.key.split('/', 1)[1] }}"{% if fl %} class="flagged"{% endif %}>
-        <td class="num">{{ s.number }}{% if s.kind == 'special' and view.kind == 'parliament' %} <span class="muted small" title="{{ t('kind_special') }}">P</span>{% endif %}</td>
-        <td>{{ s.location }}<div class="small muted">{% if s.kind != 'domestic' %}{{ t('kind_' ~ s.kind) }} · {% endif %}{% if s.unit and minority and s.kind == 'special' %}{{ t('unit') }} {{ s.unit }} · {% endif %}{{ s.name }} · {{ s.address }}</div></td>
+        <td class="num">{{ s.number or '—' }}{% if s.kind == 'special' and view.kind == 'parliament' %} <span class="muted small" title="{{ t('kind_special') }}">P</span>{% endif %}</td>
+        {% set sub = [t('kind_' ~ s.kind) if s.kind != 'domestic' else '', (t('unit') ~ ' ' ~ s.unit) if (s.unit and minority and s.kind == 'special') else '', s.name if s.location else '', s.address]|select|list %}
+        <td>{{ s.location or s.name or t('station') }}{% if sub %}<div class="small muted">{{ sub|join(' · ') }}</div>{% endif %}</td>
         {% if not minority %}<td class="num">{{ i(s.registered) }}</td>{% endif %}<td class="num">{{ i(s.voted) }}</td>
         {% if not minority %}<td class="num">{% if s.kind == 'domestic' %}{{ pct(s.turnout, 1) }}{% else %}—{% endif %}</td>{% endif %}
         <td class="num">{{ i(s.ballots) }}</td><td class="num">{{ i(s.invalid) }}</td>

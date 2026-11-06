@@ -47,7 +47,7 @@
   {% set s = it.s %}
   <article class="card" data-mun="{{ s.mun_key }}" data-contest="{{ it.contest }}" data-types="{{ it.flags|map(attribute='code')|unique|join(' ') }}" data-text="{{ name(s.municipality) }} {{ s.number }} {{ s.location }} {{ s.address }}">
     <header>
-      <h2 class="card-title"><a href="{{ link(base ~ 'm/' ~ s.mun_key ~ '.html') }}#{{ it.anchor }}">{{ name(s.municipality) }} · {{ t('station_no') }} {{ s.number }}</a> <span class="muted">{{ s.location }}</span></h2>
+      <h2 class="card-title"><a href="{{ link(base ~ 'm/' ~ s.mun_key ~ '.html') }}#{{ it.anchor }}">{{ name(s.municipality) }}{% if s.number %} · {{ t('station_no') }} {{ s.number }}{% endif %}</a> <span class="muted">{{ s.location or s.name }}</span></h2>
       <p class="muted small">{% if view.kind == 'parliament' %}{{ cname(it.contest) }}{% if s.kind != 'domestic' %} · {% endif %}{% endif %}{% if s.kind != 'domestic' %}{{ t('kind_' ~ s.kind) }}{% endif %}{% if s.unit and s.contest.startswith('XII') and s.kind == 'special' %} · {{ t('unit') }} {{ s.unit }}{% endif %}</p>
     </header>
     {{ mx.chips(it.flags) }}

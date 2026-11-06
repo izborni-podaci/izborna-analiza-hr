@@ -41,7 +41,7 @@ class Election:
         return f"{ARCHIVE}#/app/{self.page}"
 
 
-def _parliament(year: int, date: str, keep: tuple[str, ...], published: bool = False, names: str = "cp437",
+def _parliament(year: int, date: str, keep: tuple[str, ...], published: bool = True, names: str = "cp437",
                 title_hr: str | None = None, xi_seats: int = 3) -> Election:
     return Election(
         id=f"sabor-{year}", kind="parliament", path=f"parlament/{year}", page=f"parlament-{year}",
@@ -52,7 +52,7 @@ def _parliament(year: int, date: str, keep: tuple[str, ...], published: bool = F
 
 
 def _president(year: int, dates: tuple[str, str], files: tuple[str, str], keep: tuple[str, ...],
-               published: bool = False) -> Election:
+               published: bool = True) -> Election:
     span = f"{year}./{year + 1}." if dates[0][:4] != dates[1][:4] else f"{year}."
     span_en = f"{year}–{str(year + 1)[2:]}" if dates[0][:4] != dates[1][:4] else f"{year}"
     return Election(
@@ -65,11 +65,11 @@ def _president(year: int, dates: tuple[str, str], files: tuple[str, str], keep: 
 
 
 # Newest first. The parliament's files are kept as CSV (the XLSX repeat them); the president's as published. DIP's
-# archive has results by polling station from 2000; before that, PDF reports only.
+# archive has results by polling station from 2000; before that, PDF reports only. An election stays off the site
+# (published=False) while its files are archived but not yet read.
 ELECTIONS = (
-    _parliament(2024, "2024-04-17", ("CSV/*.csv",), published=True),
-    _president(2024, ("2024-12-29", "2025-01-12"), ("*/1_krug/*.xlsx", "*/2_krug/*.xlsx"), ("*.xlsx",),
-               published=True),
+    _parliament(2024, "2024-04-17", ("CSV/*.csv",)),
+    _president(2024, ("2024-12-29", "2025-01-12"), ("*/1_krug/*.xlsx", "*/2_krug/*.xlsx"), ("*.xlsx",)),
     _parliament(2020, "2020-07-05", ("CSV/*.csv",)),
     _president(2019, ("2019-12-22", "2020-01-05"), ("*/1_krug/*.xlsx", "*/2_krug/*.xlsx"), ("*.xlsx",)),
     _parliament(2016, "2016-09-11", ("CSV/*.csv",)),
@@ -80,8 +80,7 @@ ELECTIONS = (
     _parliament(2007, "2007-11-25", ("CSV/*.csv",), xi_seats=5),
     _president(2005, ("2005-01-02", "2005-01-16"), ("*1krug.xlsx", "*2krug.xlsx"), ("*.xlsx", "*.csv")),
     _parliament(2003, "2003-11-23", ("Rezultati po BM redovita+*/CSV/*.csv",), names="cp852", xi_seats=4),
-    # 2000: the sheets name the lists in their header, which the CSV only number
-    _parliament(2000, "2000-01-03", ("RezultatiPoBM/CSV/*.csv", "RezultatiPoBM/Excel/*.xlsx"), xi_seats=6),
+    _parliament(2000, "2000-01-03", ("RezultatiPoBM/CSV/*.csv",), xi_seats=6),
     _president(2000, ("2000-01-24", "2000-02-07"), ("*1. krug*.xlsx", "*2. krug*.xlsx"), ("*.xlsx", "*.csv")),
 )
 PUBLISHED = tuple(e for e in ELECTIONS if e.published)

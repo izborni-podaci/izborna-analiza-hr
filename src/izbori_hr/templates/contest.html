@@ -13,7 +13,7 @@
 <h2>{{ t('results_heading') }}</h2>
 {{ mx.results_table(c) }}
 {% if c.contest.votes_per_voter > 1 %}<p class="rule">{{ t('serb_note') }}</p>{% endif %}
-<p class="rule">{{ t('seats_rule') }}</p>
+<p class="rule">{{ t('seats_rule', xi=view.election.xi_seats) }}</p>
 
 <h2>{{ t('check_heading') }}</h2>
 <p>{{ t('check_count', n=i(c.flagged)) }}{% if c.flagged %} · <a href="{{ link(base + 'check.html') }}#c-{{ c.id }}">{{ t('see_all_flags') }}</a>{% endif %}</p>

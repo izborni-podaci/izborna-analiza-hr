@@ -239,10 +239,9 @@ def read_parliament_old(election: Election, round_: Round, raw: Path) -> RoundRe
             cid = ROMAN[int(m[1])]
             names, stations = _report(_read_csv(path), cid, "domestic", data_dir)
             lists = _lists_2000(path.with_name(f"ij{m[1]}_Stranke.csv"))
-            if names != [str(i + 1) for i in range(len(names))] or len(lists) < len(names):
+            lists = [x for i, x in enumerate(lists, 1) if i not in NO_COLUMN_2000.get(cid, ())]
+            if names != [str(i + 1) for i in range(len(names))] or len(lists) != len(names):
                 raise ValueError(f"{name}: {len(names)} columns of votes, {len(lists)} lists")
-            # V names 26 lists and has columns for 25, which add up to the valid ballots: the last has none
-            lists = lists[:len(names)]
             parts.setdefault(cid, []).append((lists, stations))
     if not parts:
         raise ValueError(f"{election.id}: no file read")
@@ -264,6 +263,13 @@ def read_parliament_old(election: Election, round_: Round, raw: Path) -> RoundRe
     if not any(s.voted != s.ballots for s in stations):
         notes.append("voted_from_ballots" if election.id == "sabor-2003" else "ballots_derived")
     return RoundResults(election, round_, contest_order(contests), stations, tuple(notes))
+
+
+# 2000, constituency V: DIP's file names 26 lists and has 25 columns, which add up to the valid ballots. The
+# 19th list (Nova Hrvatska) has none: column 19 holds the votes of a party of the Danube Serbs (list 20; Trpinja,
+# Vukovar, Negoslavci, Borovo), 21 those of SDSS (list 22, the same places) and 22 the 26.7% of SDP–HSLS (list 23),
+# whose five seats there make its 71 of the official result.
+NO_COLUMN_2000 = {"V": (19,)}
 
 
 def _same(a: str, b: str) -> bool:

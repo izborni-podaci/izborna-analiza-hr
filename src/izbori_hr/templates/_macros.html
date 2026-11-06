@@ -81,6 +81,8 @@
 
 {% macro source(view) %}
 <p class="data-note">{{ t('source') }}: <a href="{{ view.election.page_url }}">{{ t('source_page') }}</a> · <a href="{{ view.election.zip_url }}">{{ t('source_zip') }}</a> · <a href="{{ repo_url }}/tree/main/data/{{ view.election.id }}/raw">{{ t('source_raw') }}</a> · {{ t('fetched') }} {{ date(view.meta.fetched) }}</p>
+{% for n in view.rnd.notes %}<p class="muted small">{{ t('note_' ~ n) }}</p>
+{% endfor %}
 {% endmacro %}
 
 {% macro tiles(registered, voted, turnout, valid, invalid, invalid_share, show_registered=true) %}

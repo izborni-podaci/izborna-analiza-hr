@@ -41,7 +41,7 @@
     <div class="seatbar" role="img" aria-label="{{ t('seats_heading') }}">
       {% for p in winners %}<span class="seg s{{ loop.index if loop.index <= 8 else 0 }}" style="flex-grow: {{ p.seats }}" title="{{ short_name(p.name) }}: {{ p.seats }}"></span>{% endfor %}<span class="seg s0" style="flex-grow: {{ minority_seats }}" title="{{ t('minorities') }}: {{ minority_seats }}"></span>
     </div>
-    <span class="seatmark" style="left: {{ '%.3f'|format(100 * (total_seats // 2 + 1) / total_seats) }}%"><span>{{ t('majority_line', n=total_seats // 2 + 1) }}</span></span>
+    {% if 'no_xi_xii' not in rnd.notes %}<span class="seatmark" style="left: {{ '%.3f'|format(100 * (total_seats // 2 + 1) / total_seats) }}%"><span>{{ t('majority_line', n=total_seats // 2 + 1) }}</span></span>{% endif %}
   </div>
   <div class="table-wrap">
   <table class="compact">
@@ -50,7 +50,7 @@
     {% for p in view.parties if p.seats %}
       <tr><td><span class="swatch s{{ loop.index if loop.index <= 8 else 0 }}" aria-hidden="true"></span>{{ p.name }}</td><td class="num" data-v="{{ p.seats }}"><strong>{{ p.seats }}</strong></td><td class="num" data-v="{{ p.votes }}">{{ i(p.votes) }}</td><td class="small">{{ p.units|join(', ') }}</td></tr>
     {% endfor %}
-      <tr><td><span class="swatch s0" aria-hidden="true"></span>{{ t('minorities') }}</td><td class="num" data-v="{{ minority_seats }}"><strong>{{ minority_seats }}</strong></td><td class="num" data-v="">—</td><td class="small">XII</td></tr>
+      {% if minority_seats %}<tr><td><span class="swatch s0" aria-hidden="true"></span>{{ t('minorities') }}</td><td class="num" data-v="{{ minority_seats }}"><strong>{{ minority_seats }}</strong></td><td class="num" data-v="">—</td><td class="small">XII</td></tr>{% endif %}
     </tbody>
   </table>
   </div>
@@ -61,7 +61,7 @@
     <thead><tr><th>{{ t('lead_party') }}</th><th class="num">{{ t('votes') }}</th><th>{{ t('units_ran') }}</th></tr></thead>
     <tbody>{% for p in rest %}<tr><td>{{ p.name }}</td><td class="num">{{ i(p.votes) }}</td><td class="small">{{ p.units|join(', ') }}</td></tr>{% endfor %}</tbody>
   </table></div></details>{% endif %}
-  <p class="rule">{{ t('seats_rule') }}</p>
+  <p class="rule">{{ t('seats_rule', xi=view.election.xi_seats) }}</p>
 
   <h3 id="units">{{ t('units_heading') }}</h3>
   <div class="table-wrap">

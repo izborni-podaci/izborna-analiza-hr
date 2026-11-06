@@ -7,7 +7,7 @@ in the same commit. README.md describes the project for its users; this file is 
 ## How to work here
 
 - **Commit straight to `main`.** No feature branches or pull requests (as in the Serbian archive).
-- **Run the whole test suite before every push:** `uv run pytest -q` (about 30 seconds). The **test** workflow runs
+- **Run the whole test suite before every push:** `uv run pytest -q` (about 2 minutes). The **test** workflow runs
   it again on every push; a red run is fixed before anything else.
 - **Explain why in commit messages.** Say what changed for the site or the data, and the reason.
 - **Update README.md with every feature:** what the site shows, the archive layout, the commands, the workflows and
@@ -47,6 +47,33 @@ maintainer.
   - Zagreb is three municipalities in the parliament's files ("ZAGREB - I. IZBORNA JEDINICA", II, VI), each
     numbering its stations from 1, and one ("GRAD ZAGREB") in the president's. Pages are per round, so nothing
     joins them yet.
+- **Every election since 2000 is archived** (DIP's archive has PDF reports only before that). The layouts:
+  - parliament 2015–2024: fifteen columns of the station, then each list and its candidates' preferential votes
+    (`results.read_parliament`); 2016 names its files `004_00_rezultati.csv`, the others `02_04_rezultati.csv`;
+    2015's special stations name their first columns differently, so only the vote columns must agree;
+  - parliament 2007 and 2011: reports by constituency (regular, special, abroad; XI's voters in Croatia), a row
+    of ballot numbers under the header and totals at the end; read by the columns' names (`formats.roles`);
+  - parliament 2003: regular and "mixed" stations (embassies, clubs abroad, displaced persons, institutions),
+    all kept as special stations; one column of voters, counted by the ballots; the zip's file names are DOS
+    Latin 2 without the UTF-8 flag (`Election.names`);
+  - parliament 2000: constituencies I–X only, lists by number with their names in `ijNN_Stranke.csv` (parties a
+    line each, the leader last, not in capitals);
+  - president 2014–2024: one sheet a round, as 2024 (`results.read_president`); 2009 and 2005: the country and
+    its stations abroad as a county ("INOZEMSTVO"), "Grand Total" rows; 2000: a sheet for Croatia and one for
+    abroad by country.
+- **What a file lacks is not made up** (`RoundResults.notes`, shown on every page of the round): no ballots in the
+  box (president 2000 and 2009, parliament 2000) → valid plus invalid stand in, and signatures are compared with
+  them; no register count (parliament 2003, president 2005) → the ballots stand in, so signatures and ballots
+  aren't compared; abroad by country (president 2000); I–X only (parliament 2000).
+- **2000, constituency V:** DIP's list names 26 lists and the file has 25 columns, which add up to the valid
+  ballots. List 19 (Nova Hrvatska) has no column: column 19's votes are where the Party of Danube Serbs (list 20)
+  would have them (Trpinja, Vukovar, Negoslavci, Borovo), 21's where SDSS (22) would, and 22 holds SDP–HSLS's
+  26.7% (23), whose five seats there make the coalition's 71 of the official result (`formats.NO_COLUMN_2000`).
+- **Counties of the older parliamentary files,** which name the municipality only, come from the presidential
+  files of 2024, 2019, 2014 and 2009 (`formats.county_lookup`), the newest first; names that two municipalities
+  share (Otok) are left without one unless written apart ("OTOK (VINKOVCI)"), and renamed ones have an alias.
+- **A zip is extracted again when the patterns of what is kept change** (`meta.json` records them), not only when
+  DIP republishes.
 - **Which parliamentary column is a list is computed, not written:** DIP's CSV has fifteen columns of the station,
   then each list followed by its candidates' preferential votes, with no marker. `results.group_columns` finds the
   grouping in which no candidate, nor all of a list's together, has more votes than the list and the lists add up
@@ -57,8 +84,9 @@ maintainer.
 - **Seats:** Act on the Election of Representatives to the Croatian Parliament (NN 98/19): D'Hondt (Art. 40) among
   lists with 5% of the valid votes (Art. 41), 14 seats in I–X and 3 in XI; the minorities' candidates with most
   votes, 3 for the Serb minority and 1 for each other group (Art. 16, 17, 46). The Serb minority's voters may vote
-  for up to three candidates, so its votes may add up to three times its valid ballots. The 2024 allocation equals
-  DIP's result (`tests/test_results.py`).
+  for up to three candidates, so its votes may add up to three times its valid ballots. XI's seats followed
+  turnout before 2011 (2000: 6, 2003: 4, 2007: 5; `Election.xi_seats`). The allocation equals the official
+  result of every election since 2000, with the threshold on the valid votes (`tests/test_results.py`).
 - **President:** a majority of all voters who voted (Constitution, Art. 94). The site's first column of shares is of
   the voters who voted (DIP's own first-round tables use it), the second of the valid ballots (as the result was
   reported: 74.68% in the 2025 second round, 71.92% of those who voted).
@@ -82,7 +110,8 @@ maintainer.
   constituency its stations voted in: its own first, then voters from elsewhere at its special stations, then the
   minorities) and, for the parliament, every constituency.
 - **Look:** the Serbian site's stylesheet and fonts (IBM Plex Sans, Source Serif 4; Latin subsets only).
-- **Hosting:** GitHub Pages through Actions (`pages.yml`), about 60 MB and 3,600 files, at
+- **Hosting:** GitHub Pages through Actions (`pages.yml`), about 400 MB and 25,000 files with every election
+  since 2000, at
   https://izborni-podaci.github.io/izborna-analiza-hr/. Pages must be set to "Source: GitHub Actions" in the
   repository's settings (the maintainer did it on 6 Nov 2026); without it the deploy job fails with a 404.
 
@@ -96,8 +125,8 @@ maintainer.
 
 ## Known issues and open decisions
 
-- **Elections before 2024** are in DIP's archive in the same form (the parliament back to 2000); they are not added
-  yet.
+- **Elections before 2000** are PDF reports in DIP's archive, not results by polling station; they are not added.
+- **Local elections, the European Parliament and referendums** are in DIP's archive too; not added yet.
 - **Pages across elections** (a municipality or a station over time) need Zagreb's parts and renamed
   municipalities joined; not started.
 - **Preferential votes:** who of a list takes its seats is not computed.
@@ -107,3 +136,7 @@ maintainer.
 - **6 Nov 2026:** the maintainer asked for the Serbian archive's approach for Croatia, starting with the 2024
   parliamentary and presidential elections, from the zips DIP offers as "Preuzmite sve datoteke". The checks,
   statistics and principles are the Serbian archive's; the site is in Croatian and English.
+- **6 Nov 2026, later:** at the maintainer's request, every older parliamentary and presidential election with
+  results by polling station (2000–2020) was added. The seats of all seven older parliaments equal the official
+  results, the totals equal DIP's own total rows, and the 2000 file's missing column was placed by where its
+  parties' votes fall (see *Archive and data*).
