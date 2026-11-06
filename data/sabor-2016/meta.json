@@ -3,6 +3,9 @@
  "page": "https://www.izbori.hr/arhiva-izbora/#/app/parlament-2016",
  "fetched": "2026-11-06T03:50:20+00:00",
  "sha256": "df51da6a572c9ea9c01158331a4b09885b9e48b9dc5880dacbadde6404fde4ee",
+ "keep": [
+  "CSV/*.csv"
+ ],
  "files": {
   "CSV/001_00_rezultati.csv": "2f1d6167807cca44e52abc25f3ad7923771041fae6ccce7a84d434763485892b",
   "CSV/001_00_rezultati_inozemstvo.csv": "ec9408eaecbc3c16f1829f1d0516613eae5d9c0dc4eec07cc3a0453b585a16f0",

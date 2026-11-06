@@ -3,6 +3,9 @@
  "page": "https://www.izbori.hr/arhiva-izbora/#/app/parlament-2003",
  "fetched": "2026-11-06T03:52:23+00:00",
  "sha256": "0c44b49f4f2b96d6fccba7baeb55d42a636ec9d60d049b060d8da8d151126b71",
+ "keep": [
+  "Rezultati po BM redovita+*/CSV/*.csv"
+ ],
  "files": {
   "Rezultati po BM redovita+mješovita/CSV/I izborna jedinica_IJ01 po BM .csv": "4a377ff402f16ff854e2c676b2908c689ef5eabf01fe0b7344ddd61e79dd9dfb",
   "Rezultati po BM redovita+mješovita/CSV/I izborna jedinica_IJ01 sumari grad_općina.csv": "f6e51406d56de3cad06cc5412fedc219f7bbd29baf122b36600e2da3ea2981b6",

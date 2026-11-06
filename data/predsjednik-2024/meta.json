@@ -3,6 +3,9 @@
  "page": "https://www.izbori.hr/arhiva-izbora/#/app/predsjednik-2024",
  "fetched": "2026-11-06T02:28:42+00:00",
  "sha256": "1336691e2bc455c5c2f1365d7ba14ce583b487979d910daa896f6362bf78c91a",
+ "keep": [
+  "*.xlsx"
+ ],
  "files": {
   "rezultati_2024/1_krug/rezultati_bm(1).xlsx": "d4f76dc54fae82691b18c7d389e4533c6314726c4313720e9b4d53fae2986f07",
   "rezultati_2024/2_krug/rezultati_bm(2).xlsx": "cc3000c0eab83fc4eb080ef77e63a89f1869f93a952d4f4760505b5e4720a7a2"

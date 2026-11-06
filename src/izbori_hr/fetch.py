@@ -52,7 +52,7 @@ def store(election: Election, blob: bytes, data_dir: Path, log=print) -> bool:
     meta_path = out / "meta.json"
     digest = hashlib.sha256(blob).hexdigest()
     meta = json.loads(meta_path.read_text(encoding="utf-8")) if meta_path.exists() else {}
-    if meta.get("sha256") == digest:
+    if meta.get("sha256") == digest and meta.get("keep") == list(election.keep):
         log(f"{election.id}: unchanged")
         return False
     files = {}
@@ -68,7 +68,7 @@ def store(election: Election, blob: bytes, data_dir: Path, log=print) -> bool:
             files[name] = hashlib.sha256(data).hexdigest()
     meta = {"source": election.zip_url, "page": election.page_url,
             "fetched": datetime.now(timezone.utc).isoformat(timespec="seconds"), "sha256": digest,
-            "files": dict(sorted(files.items()))}
+            "keep": list(election.keep), "files": dict(sorted(files.items()))}
     out.mkdir(parents=True, exist_ok=True)
     meta_path.write_text(json.dumps(meta, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
     log(f"{election.id}: {len(files)} files kept from {len(blob) / 1e6:.1f} MB")

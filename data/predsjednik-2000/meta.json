@@ -3,6 +3,10 @@
  "page": "https://www.izbori.hr/arhiva-izbora/#/app/predsjednik-2000",
  "fetched": "2026-11-06T03:52:31+00:00",
  "sha256": "892a87d5a803c7a404f45109a756571ba97015b9be4f6bab394d85a947aa771e",
+ "keep": [
+  "*.xlsx",
+  "*.csv"
+ ],
  "files": {
   "CSV/Predsjednik 2000 po BM - 1. krug_Prvi krug RH.csv": "3b377c2692a384acb935e1d31b124f563e1f1d3f4cc33396b2a621b4e7f14014",
   "CSV/Predsjednik 2000 po BM - 1. krug_Prvi krug inozemstvo.csv": "402bc269863419f21f21520108dc992b2c5126755449bc916df9d236ec5ed280",

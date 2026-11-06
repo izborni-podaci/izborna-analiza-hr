@@ -3,6 +3,9 @@
  "page": "https://www.izbori.hr/arhiva-izbora/#/app/parlament-2007",
  "fetched": "2026-11-06T03:51:36+00:00",
  "sha256": "92f1588386750fa6eed4f704ad72001612ccffacd7328a845823ed336c252a61",
+ "keep": [
+  "CSV/*.csv"
+ ],
  "files": {
   "CSV/01_I_izborna_jedinica_BM_u_inozemstvu.csv": "618bb9b27506655d9e83024d8fa55a3feecef227e7d60a28f6d43a9c6c69bc47",
   "CSV/01_I_izborna_jedinica_Gradovi-opcine.csv": "a8360b09514123baeee646d8587e2b35e4a4254595aae1d32b4b5231c1cf114d",

@@ -91,7 +91,9 @@ class Station:
     @property
     def mun_key(self) -> str:
         """The municipality across this archive: county and name at home, the country abroad."""
-        return f"ino-{slug(self.municipality)}" if self.kind == "abroad" else f"{self.county_no}-{slug(self.municipality)}"
+        if self.kind == "abroad":
+            return f"ino-{slug(self.municipality)}"
+        return f"{self.county_no}-{slug(self.municipality)}" if self.county_no else slug(self.municipality)
 
     @property
     def key(self) -> str:
@@ -100,9 +102,9 @@ class Station:
         president numbers them from 901. Zagreb's parts of constituencies I, II and VI number their stations each
         from 1, under their own names."""
         if self.kind != "special" or self.contest == "RH":
-            return f"{self.mun_key}/{self.number}"
+            return f"{self.mun_key}/{self.number or '-'}"
         key = f"{self.mun_key}/p{self.number}"
-        return f"{key}-{self.unit.lower()}" if self.contest.startswith("XII") else key
+        return f"{key}-{self.unit.lower()}" if self.contest.startswith("XII") and self.unit else key
 
     @property
     def turnout(self) -> float | None:
@@ -115,6 +117,7 @@ class RoundResults:
     round: Round
     contests: dict[str, Contest]
     stations: list[Station]
+    notes: tuple[str, ...] = ()  # what DIP's files of this round lack, as keys of the site's texts
 
     @property
     def id(self) -> str:
@@ -193,7 +196,40 @@ def _read_csv(path: Path) -> list[list[str]]:
     return list(csv.reader(io.StringIO(path.read_bytes().decode("cp1250")), delimiter=";"))
 
 
-FILE = re.compile(r"(\d)(\d)_(\d\d)_rezultati(?:_(inozemstvo|posebna))?\.csv$")
+FILE = re.compile(r"(\d{2,3})_(\d\d)_rezultati(?:_(inozemstvo|posebna))?\.csv$")
+
+
+def contest_of(first: str, second: str) -> str:
+    """The contest a file holds, from its name: "02_04" (IV), "13_12" (the Serb minority) since 2020 and in 2015;
+    "004_00" (IV), "012_13" (the Serb minority) in 2016."""
+    if len(first) == 3:
+        unit = int(first)
+        return f"XII-{second[0]}" if unit == 12 else ROMAN[unit]
+    return f"XII-{first[0]}" if second == "12" else ROMAN[int(second)]
+
+
+def minority_contest(cid: str, names: list[str]) -> Contest:
+    seats, per_voter, mname = MINORITIES[cid.split("-")[1] + "3"]
+    return Contest(cid, {lang: f"XII. izborna jedinica – {n}" if lang == "hr" else f"Constituency XII – {n}"
+                         for lang, n in mname.items()},
+                   seats, [Contestant(clean(x)) for x in names], per_voter, lists=False, threshold=0.0)
+
+
+def list_contest(cid: str, election: Election, contestants: list[Contestant]) -> Contest:
+    return Contest(cid, {"hr": f"{cid}. izborna jedinica", "en": f"Constituency {cid}"},
+                   election.xi_seats if cid == "XI" else 14, contestants)
+
+
+def contest_order(contests: dict[str, Contest]) -> dict[str, Contest]:
+    order = {c: i for i, c in enumerate(ROMAN[1:12] + [f"XII-{g}" for g in "123456"])}
+    return dict(sorted(contests.items(), key=lambda kv: order[kv[0]]))
+
+
+def clean(text) -> str:
+    """A name as DIP wrote it, without line breaks, padding or a "Kandidat:" label."""
+    text = str(text or "").replace("-\n", "-").replace("\n", " ")
+    text = re.sub(r"^\s*kandidat:\s*", "", text, flags=re.I)
+    return re.sub(r"\s+", " ", text).strip()
 
 
 def read_parliament(election: Election, round_: Round, raw: Path) -> RoundResults:
@@ -203,8 +239,8 @@ def read_parliament(election: Election, round_: Round, raw: Path) -> RoundResult
         m = FILE.search(f.name)
         if not m:
             continue
-        group, _, unit, suffix = m.groups()
-        contest = f"XII-{group}" if unit == "12" else ROMAN[int(unit)]
+        first, second, suffix = m.groups()
+        contest = contest_of(first, second)
         kind = {"inozemstvo": "abroad", "posebna": "special"}.get(suffix or "", "domestic")
         tables.setdefault(contest, []).append((kind, _read_csv(f)))
     contests: dict[str, Contest] = {}
@@ -214,11 +250,7 @@ def read_parliament(election: Election, round_: Round, raw: Path) -> RoundResult
         names = header[FIXED:]
         minority = cid.startswith("XII")
         if minority:
-            code = cid.split("-")[1] + "3"
-            seats, per_voter, mname = MINORITIES[code]
-            contest = Contest(cid, {lang: f"XII. izborna jedinica – {n}" if lang == "hr" else
-                                    f"Constituency XII – {n}" for lang, n in mname.items()},
-                              seats, [Contestant(x.strip()) for x in names], per_voter, lists=False, threshold=0.0)
+            contest = minority_contest(cid, names)
             list_cols = list(range(len(names)))
         else:
             # the grouping comes from the file with the most stations; every file of the contest shares its header
@@ -227,14 +259,12 @@ def read_parliament(election: Election, round_: Round, raw: Path) -> RoundResult
             valid = [_int(r[13]) for r in rows[1:] if len(r) > FIXED and r[6].strip()]
             list_cols = group_columns(names, votes, valid, tolerance=max(1, len(votes) // 200))
             bounds = list_cols + [len(names)]
-            contest = Contest(cid, {"hr": f"{cid}. izborna jedinica", "en": f"Constituency {cid}"},
-                              3 if cid == "XI" else 14,
-                              [Contestant(names[a].strip(), tuple(x.strip() for x in names[a + 1:b]))
-                               for a, b in zip(bounds, bounds[1:])])
+            contest = list_contest(cid, election, [Contestant(clean(names[a]), tuple(clean(x) for x in names[a + 1:b]))
+                                                   for a, b in zip(bounds, bounds[1:])])
         contests[cid] = contest
         for kind, rows in parts:
-            if rows[0] != header:
-                raise ValueError(f"{cid}: the files' headers differ")
+            if rows[0][FIXED:] != header[FIXED:]:  # 2015's special stations name their first columns differently
+                raise ValueError(f"{cid}: the files name the lists differently")
             for r in rows[1:]:
                 if len(r) <= FIXED or not (r[5].strip() or r[6].strip()):
                     continue  # a blank row (XI's special stations: there were none)
@@ -248,20 +278,23 @@ def read_parliament(election: Election, round_: Round, raw: Path) -> RoundResult
                     votes=[values[c] for c in list_cols],
                     prefs=[] if minority else [values[a + 1:b] for a, b in zip(list_cols, list_cols[1:] + [len(values)])],
                     unit=ROMAN[int(r[0])] if r[0].strip().isdigit() else ""))
-    order = {c: i for i, c in enumerate(ROMAN[1:12] + [f"XII-{g}" for g in "123456"])}
-    return RoundResults(election, round_, dict(sorted(contests.items(), key=lambda kv: order[kv[0]])), stations)
+    return RoundResults(election, round_, contest_order(contests), stations)
+
+
+def round_file(raw: Path, round_: Round) -> Path:
+    """The file holding a round's results, wherever DIP put it in the zip."""
+    return next(p for pattern in round_.files for p in sorted(raw.rglob(pattern)))
 
 
 def read_president(election: Election, round_: Round, raw: Path) -> RoundResults:
     import openpyxl
-    path = next(p for pattern in round_.files for p in sorted(raw.glob(pattern)))
+    path = round_file(raw, round_)
     wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
     rows = list(wb.worksheets[0].iter_rows(values_only=True))
     head = next(i for i, r in enumerate(rows) if r and r[0] == "Rbr.županije")
     header = [str(x or "") for x in rows[head]]
-    cand_cols = [i for i, h in enumerate(header) if i >= 13 and h and h != "(%)"]
-    contest = Contest("RH", {"hr": "Republika Hrvatska", "en": "Croatia"}, 1,
-                      [Contestant(header[i].strip()) for i in cand_cols], lists=False, threshold=0.0)
+    cand_cols = [i for i, h in enumerate(header) if i >= 13 and h.strip() and h.strip() != "(%)"]
+    contest = president_contest([header[i] for i in cand_cols])
     stations = []
     for r in rows[head + 1:]:
         if not r or r[4] in (None, ""):
@@ -280,8 +313,20 @@ def read_president(election: Election, round_: Round, raw: Path) -> RoundResults
     return RoundResults(election, round_, {"RH": contest}, stations)
 
 
+def president_contest(names: list[str]) -> Contest:
+    return Contest("RH", {"hr": "Republika Hrvatska", "en": "Croatia"}, 1, [Contestant(clean(n)) for n in names],
+                   lists=False, threshold=0.0)
+
+
 def load(round_id: str, data_dir: Path) -> RoundResults:
+    """A round as DIP published it. Each era of DIP's files has its own layout (`formats`)."""
+    from izbori_hr import formats
     election, round_ = ROUNDS[round_id]
     raw = data_dir / election.id / "raw"
-    reader = read_parliament if election.kind == "parliament" else read_president
-    return reader(election, round_, raw)
+    if election.kind == "parliament":
+        if any((raw / "CSV").glob("*_rezultati.csv")):
+            return read_parliament(election, round_, raw)
+        return formats.read_parliament_old(election, round_, raw)
+    if formats.has_row(round_file(raw, round_), "Rbr.županije"):
+        return read_president(election, round_, raw)
+    return formats.read_president_old(election, round_, raw)

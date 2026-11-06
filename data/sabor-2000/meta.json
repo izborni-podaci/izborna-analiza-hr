@@ -3,6 +3,9 @@
  "page": "https://www.izbori.hr/arhiva-izbora/#/app/parlament-2000",
  "fetched": "2026-11-06T03:52:27+00:00",
  "sha256": "ae24bbc11e21453cf56a695d02e78151a31f2631aa87dced0b0d5423c1e06e90",
+ "keep": [
+  "RezultatiPoBM/CSV/*.csv"
+ ],
  "files": {
   "RezultatiPoBM/CSV/ij01_Stranke.csv": "18a2a0ccb6ed344068f00447fee76da572371a47b7399b26818c1abd2ee1a855",
   "RezultatiPoBM/CSV/ij01_ij01.csv": "597e66aa74f5e2ee81db79a53d29e76f34f38a242476371bd63bdd4b425996d4",

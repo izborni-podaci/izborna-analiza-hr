@@ -3,6 +3,9 @@
  "page": "https://www.izbori.hr/arhiva-izbora/#/app/parlament-2011",
  "fetched": "2026-11-06T03:51:15+00:00",
  "sha256": "bf28acb5c90e43af277916d75e8da523b747bfee127a4803a3f30456d78e7529",
+ "keep": [
+  "CSV/*.csv"
+ ],
  "files": {
   "CSV/01_I_izborna_jedinica_BM_INOZEMSTVO.csv": "04c74a5ec2c0af602e22931a2bb3f4c76c42a000597233e370206a8f43ed99f6",
   "CSV/01_I_izborna_jedinica_Gradovi-opcine.csv": "c4c3e5f6013a1f5cb344645b3a846b36910d7ff1dccffdaeff51114b36276fd7",

@@ -3,6 +3,10 @@
  "page": "https://www.izbori.hr/arhiva-izbora/#/app/predsjednik-2009",
  "fetched": "2026-11-06T03:51:26+00:00",
  "sha256": "c333a78fb95bc964e8f03307836f5041bfcc15b3b9bf44f2b2b0976026625198",
+ "keep": [
+  "*.xlsx",
+  "*.csv"
+ ],
  "files": {
   "2009_Predsjednik/1_krug/rezultati_po_bm_1krug.xlsx": "5a2eddea9946f64a8490a86f02a60b89f7e64b48533fd6dd201b9c15bc1a81fd",
   "2009_Predsjednik/1_krug/rezultati_po_bm_1krug_RH.csv": "abc7026eced87677fcb4bfb741d52c72a4990d3df9dcfb707a2fcd64dd3a2460",

@@ -3,6 +3,9 @@
  "page": "https://www.izbori.hr/arhiva-izbora/#/app/parlament-2024",
  "fetched": "2026-11-06T02:28:36+00:00",
  "sha256": "7caf60cb76386a6dfc312023c8d3604d4abd89c6eeeff7ad413e7c1782aae0b0",
+ "keep": [
+  "CSV/*.csv"
+ ],
  "files": {
   "CSV/02_01_rezultati.csv": "3a63a6a8314da0e7f36964b9c3282c1616a291999f56e355ce7ce48cf26b353c",
   "CSV/02_01_rezultati_inozemstvo.csv": "d64b32b062622b4c3c4317942f7e1ecfd0f6efa48bf7b1e5b9dd68c4685ecc71",

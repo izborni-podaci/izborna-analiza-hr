@@ -3,6 +3,10 @@
  "page": "https://www.izbori.hr/arhiva-izbora/#/app/predsjednik-2005",
  "fetched": "2026-11-06T03:51:41+00:00",
  "sha256": "4ed095b2628dabd6935d31474c2c3b58ed73a05ef8ee5c48b7c02bb8e7dc9d5a",
+ "keep": [
+  "*.xlsx",
+  "*.csv"
+ ],
  "files": {
   "Rezultati/CSV/Rezultati_po_BM_-_1krug.csv": "b2964861e1e87432e745c15ac62a3cf7fefb870cdac4710177d5b205e258e299",
   "Rezultati/CSV/Rezultati_po_BM_-_2krug.csv": "22567bf53cd15237f3171d0143378c96923e5562a0dafe5d460ce00869b4e7cf",
