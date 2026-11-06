@@ -1,0 +1,45 @@
+# Download the elections' results from DIP's archive and commit what changed. DIP's archive is final, so this runs
+# by hand: when an election is added to elections.py, or to check DIP republished nothing.
+name: data
+
+on:
+  workflow_dispatch:
+    inputs:
+      election:
+        description: "Elections to fetch (ids, space-separated; empty: all)"
+        default: ""
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: data
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install
+        run: pip install uv && uv sync --frozen
+      - name: Fetch
+        env:
+          ELECTION: ${{ inputs.election }}
+        run: uv run izbori-hr fetch $ELECTION
+      - name: Commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git add data
+          if git diff --cached --quiet; then echo "nothing new"; exit 0; fi
+          git config user.name "izbori-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -q -m "Data: $(git diff --cached --name-only | cut -d/ -f2 | sort -u | tr '\n' ' ')($(date -u +%FT%TZ))"
+          git push -q
+          gh workflow run pages.yml --ref main || echo "pages not started"
