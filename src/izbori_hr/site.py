@@ -21,7 +21,7 @@ from markupsafe import Markup
 
 from izbori_hr import i18n, stats, svg
 from izbori_hr.checks import BY_CODE, CHECKS, GROUPS, RULES, Flag, regular, station_flags
-from izbori_hr.elections import ELECTIONS, Election, Round
+from izbori_hr.elections import PUBLISHED, Election, Round
 from izbori_hr.i18n import LANGS, collate, fmt_date, fmt_int, fmt_num, fmt_p, fmt_pct, nice, t
 from izbori_hr.results import Contest, RoundResults, Station, load
 from izbori_hr.seats import allocate, totals
@@ -334,9 +334,9 @@ class Site:
         for view in self.views:
             self.put(f"api/r/{view.id}/flags.csv", flags_csv(view))
         for loc in LANGS:
-            self.render("index.html", "index.html", loc, views=self.views, elections=ELECTIONS,
+            self.render("index.html", "index.html", loc, views=self.views, elections=PUBLISHED,
                         by_round={v.id: v for v in self.views})
-            self.render("about.html", "about.html", loc, elections=ELECTIONS, metas={v.election.id: v.meta
+            self.render("about.html", "about.html", loc, elections=PUBLISHED, metas={v.election.id: v.meta
                                                                                    for v in self.views})
             for view in self.views:
                 self.round_pages(view, loc)
@@ -426,7 +426,7 @@ def read_meta(election: Election, data: Path) -> dict:
 
 def build(data: Path, out: Path) -> Site:
     views = []
-    for election in ELECTIONS:
+    for election in PUBLISHED:
         meta = read_meta(election, data)
         for round_ in election.rounds:
             views.append(prepare(load(round_.id, data), meta))

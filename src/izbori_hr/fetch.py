@@ -35,6 +35,13 @@ def download(url: str, tries: int = 4) -> bytes:
     raise AssertionError("unreachable")
 
 
+def entry_name(info: zipfile.ZipInfo, encoding: str) -> str:
+    """A file's name in the zip. Without the UTF-8 flag Python reads names as cp437; older zips are DOS Latin 2."""
+    if info.flag_bits & 0x800 or encoding == "cp437":
+        return info.filename
+    return info.filename.encode("cp437").decode(encoding)
+
+
 def kept(name: str, patterns: tuple[str, ...]) -> bool:
     return not name.endswith("/") and any(fnmatch.fnmatch(name, p) for p in patterns)
 
@@ -51,7 +58,7 @@ def store(election: Election, blob: bytes, data_dir: Path, log=print) -> bool:
     files = {}
     with zipfile.ZipFile(io.BytesIO(blob)) as z:
         for info in z.infolist():
-            name = info.filename
+            name = entry_name(info, election.names)
             if not kept(name, election.keep):
                 continue
             data = z.read(info)

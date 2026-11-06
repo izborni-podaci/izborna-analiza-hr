@@ -28,6 +28,8 @@ class Election:
     title: dict = field(default_factory=dict)  # by language
     rounds: tuple[Round, ...] = ()
     keep: tuple[str, ...] = ()  # glob patterns of the zip's files kept in the archive
+    names: str = "cp437"  # how the zip encodes its file names when it doesn't say (2003's: DOS Latin 2)
+    published: bool = True  # on the site; False while its files are archived but not yet read
 
     @property
     def zip_url(self) -> str:
@@ -38,22 +40,48 @@ class Election:
         return f"{ARCHIVE}#/app/{self.page}"
 
 
+def _parliament(year: int, date: str, keep: tuple[str, ...], published: bool = False, names: str = "cp437",
+                title_hr: str | None = None) -> Election:
+    return Election(
+        id=f"sabor-{year}", kind="parliament", path=f"parlament/{year}", page=f"parlament-{year}",
+        title={"hr": title_hr or f"Izbori za zastupnike u Hrvatski sabor {year}.",
+               "en": f"Croatian parliamentary election {year}"},
+        rounds=(Round(f"sabor-{year}", 1, date, keep),), keep=keep, names=names, published=published)
+
+
+def _president(year: int, dates: tuple[str, str], files: tuple[str, str], keep: tuple[str, ...],
+               published: bool = False) -> Election:
+    span = f"{year}./{year + 1}." if dates[0][:4] != dates[1][:4] else f"{year}."
+    span_en = f"{year}–{str(year + 1)[2:]}" if dates[0][:4] != dates[1][:4] else f"{year}"
+    return Election(
+        id=f"predsjednik-{year}", kind="president", path=f"predsjednik/{year}", page=f"predsjednik-{year}",
+        title={"hr": f"Izbori za predsjednika Republike Hrvatske {span}",
+               "en": f"Croatian presidential election {span_en}"},
+        rounds=(Round(f"predsjednik-{year}-1", 1, dates[0], (files[0],)),
+                Round(f"predsjednik-{year}-2", 2, dates[1], (files[1],))),
+        keep=keep, published=published)
+
+
+# Newest first. The parliament's files are kept as CSV (the XLSX repeat them); the president's as published. DIP's
+# archive has results by polling station from 2000; before that, PDF reports only.
 ELECTIONS = (
-    Election(
-        id="sabor-2024", kind="parliament", path="parlament/2024", page="parlament-2024",
-        title={"hr": "Izbori za zastupnike u Hrvatski sabor 2024.", "en": "Croatian parliamentary election 2024"},
-        rounds=(Round("sabor-2024", 1, "2024-04-17", ("CSV/*.csv",)),),
-        keep=("CSV/*.csv",),  # the XLSX files hold the same numbers
-    ),
-    Election(
-        id="predsjednik-2024", kind="president", path="predsjednik/2024", page="predsjednik-2024",
-        title={"hr": "Izbori za predsjednika Republike Hrvatske 2024./2025.",
-               "en": "Croatian presidential election 2024–25"},
-        rounds=(Round("predsjednik-2024-1", 1, "2024-12-29", ("*/1_krug/*.xlsx",)),
-                Round("predsjednik-2024-2", 2, "2025-01-12", ("*/2_krug/*.xlsx",))),
-        keep=("*.xlsx",),
-    ),
+    _parliament(2024, "2024-04-17", ("CSV/*.csv",), published=True),
+    _president(2024, ("2024-12-29", "2025-01-12"), ("*/1_krug/*.xlsx", "*/2_krug/*.xlsx"), ("*.xlsx",),
+               published=True),
+    _parliament(2020, "2020-07-05", ("CSV/*.csv",)),
+    _president(2019, ("2019-12-22", "2020-01-05"), ("*/1_krug/*.xlsx", "*/2_krug/*.xlsx"), ("*.xlsx",)),
+    _parliament(2016, "2016-09-11", ("CSV/*.csv",)),
+    _parliament(2015, "2015-11-08", ("CSV/*.csv",)),
+    _president(2014, ("2014-12-28", "2015-01-11"), ("*/1_krug/*.xlsx", "*/2_krug/*.xlsx"), ("*.xlsx", "*.csv")),
+    _parliament(2011, "2011-12-04", ("CSV/*.csv",)),
+    _president(2009, ("2009-12-27", "2010-01-10"), ("*/1_krug/*.xlsx", "*/2_krug/*.xlsx"), ("*.xlsx", "*.csv")),
+    _parliament(2007, "2007-11-25", ("CSV/*.csv",)),
+    _president(2005, ("2005-01-02", "2005-01-16"), ("*1krug.xlsx", "*2krug.xlsx"), ("*.xlsx", "*.csv")),
+    _parliament(2003, "2003-11-23", ("Rezultati po BM redovita+*/CSV/*.csv",), names="cp852"),
+    _parliament(2000, "2000-01-03", ("RezultatiPoBM/CSV/*.csv",)),
+    _president(2000, ("2000-01-24", "2000-02-07"), ("*1. krug*.xlsx", "*2. krug*.xlsx"), ("*.xlsx", "*.csv")),
 )
+PUBLISHED = tuple(e for e in ELECTIONS if e.published)
 
 BY_ID = {e.id: e for e in ELECTIONS}
 ROUNDS = {r.id: (e, r) for e in ELECTIONS for r in e.rounds}
