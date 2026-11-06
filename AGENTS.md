@@ -7,7 +7,8 @@ in the same commit. README.md describes the project for its users; this file is 
 ## How to work here
 
 - **Commit straight to `main`.** No feature branches or pull requests (as in the Serbian archive).
-- **Run the whole test suite before every push:** `uv run pytest -q` (about 2 minutes). The **test** workflow runs
+- **Run the whole test suite before every push:** `uv run pytest -q` (about 3 minutes; `tests/test_site.py`
+  builds the whole site). The **test** workflow runs
   it again on every push; a red run is fixed before anything else.
 - **Explain why in commit messages.** Say what changed for the site or the data, and the reason.
 - **Update README.md with every feature:** what the site shows, the archive layout, the commands, the workflows and
@@ -44,9 +45,9 @@ maintainer.
   - The parliament numbers its special stations apart from the regular ones (`p<number>`), and its minorities'
     special stations have a row for each constituency their voters live in (`p<number>-<constituency>`).
   - The president numbers special stations from 901 within the municipality, among the regular ones.
-  - Zagreb is three municipalities in the parliament's files ("ZAGREB - I. IZBORNA JEDINICA", II, VI), each
-    numbering its stations from 1, and one ("GRAD ZAGREB") in the president's. Pages are per round, so nothing
-    joins them yet.
+  - Zagreb is three municipalities in the parliament's files ("ZAGREB - I. IZBORNA JEDINICA", II, VI; by
+    districts in 2003–2011), each numbering its stations from 1, and one ("GRAD ZAGREB") in the president's. A
+    round's pages keep DIP's division; the pages across elections join them (*Across elections*).
 - **Every election since 2000 is archived** (DIP's archive has PDF reports only before that). The layouts:
   - parliament 2015–2024: fifteen columns of the station, then each list and its candidates' preferential votes
     (`results.read_parliament`); 2016 names its files `004_00_rezultati.csv`, the others `02_04_rezultati.csv`;
@@ -70,8 +71,17 @@ maintainer.
   would have them (Trpinja, Vukovar, Negoslavci, Borovo), 21's where SDSS (22) would, and 22 holds SDP–HSLS's
   26.7% (23), whose five seats there make the coalition's 71 of the official result (`formats.NO_COLUMN_2000`).
 - **Counties of the older parliamentary files,** which name the municipality only, come from the presidential
-  files of 2024, 2019, 2014 and 2009 (`formats.county_lookup`), the newest first; names that two municipalities
-  share (Otok) are left without one unless written apart ("OTOK (VINKOVCI)"), and renamed ones have an alias.
+  files of 2024, 2019, 2014 and 2009 (`formats.county_lookup`, regular stations only: 2009 lists a special station
+  of Karlovac in county 3), the newest first; renamed ones have an alias. Four names belong to two municipalities
+  each (Otok, Privlaka, Novigrad, Sveta Nedelja):
+  - written apart ("OTOK (VINKOVCI)"), the name says which;
+  - otherwise the constituency does, from the parliamentary files of 2015–2020, which name both
+    (`formats.constituency_lookup`); the minorities' files of 2007 and 2011 give the constituency of each
+    municipality in a column of their own;
+  - otherwise (2003's minorities) the stations around it do: DIP lists regular stations county by county, so the
+    municipality takes the county of those before and after it when they agree and it is one of the name's
+    (`formats._between`);
+  - otherwise (a few special stations of 2007, listed alphabetically) it stays without a county.
 - **A zip is extracted again when the patterns of what is kept change** (`meta.json` records them), not only when
   DIP republishes.
 - **Which parliamentary column is a list is computed, not written:** DIP's CSV has fifteen columns of the station,
@@ -106,14 +116,45 @@ maintainer.
 
 - **Static pages in Croatian (the root) and English (`en/`).** No JavaScript framework; `static/site.js` filters
   and sorts, and the pages work without it. Charts are SVG drawn when the site is built.
-- **Pages:** home, about, and for each round its results, its checks, every municipality (with a section per
+- **Pages:** home (search, where to start), about, every election, every municipality, the stations flagged in two
+  or more elections, and for each round its results, its checks, every municipality (with a section per
   constituency its stations voted in: its own first, then voters from elsewhere at its special stations, then the
-  minorities) and, for the parliament, every constituency.
+  minorities) and, for the parliament, every constituency; then every municipality and every polling station
+  across elections (*Across elections*).
+- **Search** reads `search.json` (municipalities and places, flagged ones first; about 700 kB), in the browser; the
+  home page works without it, pointing to the municipalities' index.
 - **Look:** the Serbian site's stylesheet and fonts (IBM Plex Sans, Source Serif 4; Latin subsets only).
-- **Hosting:** GitHub Pages through Actions (`pages.yml`), about 400 MB and 25,000 files with every election
+- **Size:** GitHub Pages publishes up to 1 GB. The places' pages (about 10,600) are in Croatian only, and the
+  English pages link to them: in both languages the site passed 1 GB. Pages are written without indentation
+  (`site.put`), and the cell labels of the tables on phones are one stylesheet (`static/labels.css`), not
+  repeated in every cell. The build runs in parallel processes (`Site.parallel`).
+- **Hosting:** GitHub Pages through Actions (`pages.yml`), about 620 MB and 37,000 files with every election
   since 2000, at
   https://izborni-podaci.github.io/izborna-analiza-hr/. Pages must be set to "Source: GitHub Actions" in the
   repository's settings (the maintainer did it on 6 Nov 2026); without it the deploy job fails with a 404.
+
+### Across elections
+
+- **Municipalities** have one key across every round (`places.MunicipalityKeys`): the county and the newest name.
+  Renamed ones (`RENAMED`: "SV. FILIP I JAKOV", Murter, Barilovići), Istria's municipalities, whose names are
+  bilingual since 2011 ("NOVIGRAD - CITTANOVA"; the older files write the Croatian name), and every part of Zagreb
+  (the City's key) join under it. A row that names the municipality only takes the county its name has, never
+  one of a name two municipalities share. Stations without a municipality (2003's mixed stations, displaced
+  persons, the diaspora voting at home, the special stations of 2007 left without a county) are on their round's
+  pages only.
+- **Places** are regular stations at home (I–X and the president's), followed forward in time, round by round oldest
+  first, so a new election never changes how the earlier ones were joined (`places.follow`): by address, then
+  building, then the settlement or area served, then number. A number never joins stations whose addresses or
+  buildings clearly differ, whose registers differ more than twice (`SIZE = 2.0`; at 1.5, about 1,500 more places,
+  most of them one station split in two; of those joined by address, 1.6% change that much), or that belong to
+  another numbering (Zagreb's parts number from 1, the City's numbers are its own). Stations sharing an address or a
+  name pair with the places last seen there, the same number first, then the nearest number at one address. 10,612
+  places; 3,444 are in all 20 rounds. A place's page is named after its municipality and newest number
+  (`s/14-beli-manastir-3.html`; Zagreb's parts after the part); the newest elections' places take the plain names,
+  one that ended earlier adds its last round.
+- **What the pages say:** rows of numbers for every round and a short text ("Ukratko") that sets the latest
+  numbers beside the country's or the municipality's and the earlier elections', computed the same way for
+  every place; it states numbers and never judges them (`history.py`).
 
 ### Workflows
 
@@ -127,8 +168,11 @@ maintainer.
 
 - **Elections before 2000** are PDF reports in DIP's archive, not results by polling station; they are not added.
 - **Local elections, the European Parliament and referendums** are in DIP's archive too; not added yet.
-- **Pages across elections** (a municipality or a station over time) need Zagreb's parts and renamed
-  municipalities joined; not started.
+- **Places are joined by rules, not by DIP's own key:** DIP gives no identifier that lasts from one election to
+  the next. A place's page says how each round's station was joined to the earlier ones (address, building,
+  settlement or number), so a reader can judge it.
+- **Not yet:** an explorer of every station by its numbers, a JSON API by municipality and place, a guide for
+  readers, as the Serbian site has.
 - **Preferential votes:** who of a list takes its seats is not computed.
 
 ## Decisions log
@@ -140,3 +184,7 @@ maintainer.
   results by polling station (2000–2020) was added. The seats of all seven older parliaments equal the official
   results, the totals equal DIP's own total rows, and the 2000 file's missing column was placed by where its
   parties' votes fall (see *Archive and data*).
+- **6 Nov 2026, later:** the maintainer asked to continue the site after the Serbian one ("po uzoru na srpsku
+  verziju"): every municipality and every polling station across elections, search on the home page, the
+  elections and municipalities indexes, the stations flagged more than once and a home page that starts from
+  them. The places' pages are in Croatian only, to stay under GitHub Pages' 1 GB.

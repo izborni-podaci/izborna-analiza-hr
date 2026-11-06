@@ -8,6 +8,7 @@
 <meta name="referrer" content="no-referrer">
 <link rel="stylesheet" href="{{ root }}static/fonts.css">
 <link rel="stylesheet" href="{{ root }}static/site.css">
+<link rel="stylesheet" href="{{ root }}static/labels.css">
 <script>try { var th = localStorage.getItem('theme'); if (th === 'dark' || th === 'light') document.documentElement.dataset.theme = th; } catch (e) {}</script>
 {% for l in langs %}<link rel="alternate" hreflang="{{ l.lang }}" href="{{ l.href }}">
 {% endfor %}
@@ -17,7 +18,8 @@
   <div class="wrap top-row">
     <a class="brand" href="{{ link('index.html') }}">{{ t('site_name') }}</a>
     <nav class="main-nav" aria-label="{{ t('nav_main') }}">
-      <a href="{{ link('index.html') }}#izbori"{% if page.startswith('r/') %} aria-current="page"{% endif %}>{{ t('nav_elections') }}</a>
+      <a href="{{ link('elections.html') }}"{% if page.startswith('r/') or page == 'elections.html' %} aria-current="page"{% endif %}>{{ t('nav_elections') }}</a>
+      <a href="{{ link('municipalities.html') }}"{% if page.startswith(('m/', 's/')) or page == 'municipalities.html' %} aria-current="page"{% endif %}>{{ t('nav_municipalities') }}</a>
       <a href="{{ link('about.html') }}"{% if page == 'about.html' %} aria-current="page"{% endif %}>{{ t('nav_about') }}</a>
     </nav>
     <div class="top-tools">

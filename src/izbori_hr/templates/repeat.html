@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% import "_macros.html" as mx with context %}
+{% block title %}{{ t('repeat_title') }}{% endblock %}
+{% block main %}
+{{ mx.crumbs([(t('crumbs_home'), link('index.html')), (t('repeat_title'), none)]) }}
+<h1 class="page-title">{{ t('repeat_title') }}</h1>
+<p class="lede">{{ t('repeat_lede') }}</p>
+<p class="principle">{{ t('principle') }}</p>
+<p><strong>{{ t('repeat_count', n=i(rows|length)) }}</strong></p>
+<label class="filter">{{ t('filter_search') }} <input type="search" data-filter="#repeat" autocomplete="off"></label>
+<div class="table-wrap">
+<table class="compact" id="repeat">
+  <thead><tr>
+    <th>{{ t('municipality') }}</th><th>{{ t('station') }}</th>
+    <th class="num" data-sort>{{ t('repeat_k') }}</th><th>{{ t('repeat_checks') }}</th><th>{{ t('repeat_last') }}</th>
+  </tr></thead>
+  <tbody>
+  {% for r in rows %}
+    <tr data-text="{{ name(r.mun) }} {{ r.number }} {{ r.label }}">
+      <td><a href="{{ link('m/' ~ r.code ~ '.html') }}">{{ name(r.mun) }}</a></td>
+      <td><a href="{{ root }}s/{{ r.id }}.html">{{ t('station_no') }} {{ r.number }}</a>{% if r.label %}<div class="small muted">{{ r.label }}</div>{% endif %}</td>
+      <td class="num" data-v="{{ r.k }}">{{ r.k }} / {{ r.n }}</td>
+      <td class="small">{% for code, c in r.codes %}<span class="sym-line">{{ mx.sym(code, group_of[code]) }}{{ check_name(code) }}{% if c > 1 %} ×{{ c }}{% endif %}</span>{% if not loop.last %}<br>{% endif %}{% endfor %}</td>
+      <td class="small">{{ r.last }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

@@ -1,5 +1,6 @@
 """The built site: every page in both languages, every link and anchor resolves, nothing loads from elsewhere."""
 
+import json
 import re
 from pathlib import Path
 from urllib.parse import urldefrag
@@ -27,10 +28,23 @@ def test_pages_in_both_languages(site):
                      "r/predsjednik-2024-2/index.html",
                      "r/predsjednik-2024-1/m/21-grad-zagreb.html"):
             assert (site / prefix / page).is_file(), prefix + page
+    for prefix in ("", "en/"):
+        for page in ("elections.html", "municipalities.html", "repeat.html", "m/14-beli-manastir.html",
+                     "m/21-grad-zagreb.html"):
+            assert (site / prefix / page).is_file(), prefix + page
+    # the places' pages are Croatian only (size budget); both languages link to them
+    assert (site / "s/14-beli-manastir-3.html").is_file() and not (site / "en/s").exists()
+    assert 'href="../../s/14-beli-manastir-3.html"' in (site / "en/m/14-beli-manastir.html").read_text(encoding="utf-8")
+    index = json.loads((site / "search.json").read_text(encoding="utf-8"))
+    municipalities = {m[1] for m in index["m"]}
+    assert "21-grad-zagreb" in municipalities and all(index["m"][s[0]][1] in municipalities for s in index["s"])
+    assert all((site / f"s/{s[3]}.html").is_file() for s in index["s"][:200])
+    assert "table.history td.l-turnout" in (site / "static/labels.css").read_text(encoding="utf-8")
     assert (site / "api/r/sabor-2024/flags.csv").read_text(encoding="utf-8").startswith("round,contest,")
     home = (site / "index.html").read_text(encoding="utf-8")
-    assert 'lang="hr"' in home and "Izbori u arhivi" in home
-    assert "Elections in the archive" in (site / "en/index.html").read_text(encoding="utf-8")
+    assert 'lang="hr"' in home and "data-search" in home and "Odakle krenuti" in home
+    assert "Izbori u arhivi" in (site / "elections.html").read_text(encoding="utf-8")
+    assert "Elections in the archive" in (site / "en/elections.html").read_text(encoding="utf-8")
 
 
 def test_results_on_the_pages(site):

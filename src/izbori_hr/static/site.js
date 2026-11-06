@@ -29,6 +29,90 @@
     });
   }
 
+  // Search on the home page: municipalities and polling places from search.json, loaded on first use. Every result
+  // opens its page across all elections.
+  const search = document.querySelector('form[data-search]');
+  if (search) {
+    const input = search.querySelector('input');
+    const out = search.querySelector('[data-search-results]');
+    const base = search.dataset.base || '';
+    const placeBase = search.dataset.placeBase || base;  // the places' pages are Croatian only
+    let items = null;
+    let loading = null;
+    let hits = [];
+    const load = () => {
+      if (!loading) {
+        loading = fetch(search.dataset.index)
+          .then((r) => r.json())
+          .then((j) => {
+            const d = search.dataset;
+            // [folded label, folded label with former numbers, [label, url, sub-line]]
+            const mun = j.m.map((m) => {
+              const f = fold(m[0]);
+              return [f, f, [m[0], `${base}m/${m[1]}.html`, d.munSub.replace('{n}', m[2])]];
+            });
+            const st = j.s.map((s) => {
+              const m = j.m[s[0]];
+              const label = `${m[0]} · ${d.bm} ${s[1]}${s[2] ? ` · ${s[2]}` : ''}`;
+              let sub = (s[4] ? d.flagged.replace('{k}', s[4]) : d.clean).replace('{n}', s[5]);
+              if (s[6]) sub += ` · ${d.former.replace('{n}', s[6])}`;
+              const f = fold(label);
+              return [f, s[6] ? `${f} ${fold(`${d.bm} ${s[6]}`)}` : f, [label, `${placeBase}s/${s[3]}.html`, sub]];
+            });
+            items = mun.concat(st);
+          })
+          .catch(() => { items = []; });
+      }
+      return loading;
+    };
+    const render = () => {
+      out.textContent = '';
+      const q = fold(input.value.trim());
+      if (!q || !items) return;
+      const words = q.split(/\s+/);
+      const numbers = words.filter((w) => /^\d+$/.test(w));
+      hits = items.filter(([, f]) => words.every((w) => f.includes(w)));
+      if (numbers.length) {  // "split 25": station 25 before 125 and 250, and before a place that used to be 25
+        const exact = (f) => numbers.every((n) => new RegExp(`(^|\\D)${n}(\\D|$)`).test(f));
+        const rank = ([now, all]) => (exact(now) ? 0 : exact(all) ? 1 : 2);
+        hits = hits.map((h, i) => [rank(h), i, h]).sort((a, b) => a[0] - b[0] || a[1] - b[1]).map((x) => x[2]);
+      }
+      hits = hits.slice(0, 12);
+      if (!hits.length) {
+        const p = document.createElement('p');
+        p.textContent = out.dataset.none;
+        out.append(p);
+        return;
+      }
+      const ul = document.createElement('ul');
+      hits.forEach(([, , it]) => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = it[1];
+        a.textContent = it[0];
+        li.append(a);
+        if (it[2]) {
+          const s = document.createElement('span');
+          s.className = 'small muted';
+          s.textContent = it[2];
+          li.append(s);
+        }
+        ul.append(li);
+      });
+      out.append(ul);
+    };
+    input.addEventListener('focus', load, { once: true });
+    input.addEventListener('input', () => { load().then(render); });
+    search.addEventListener('submit', (e) => {
+      e.preventDefault();
+      load().then(() => {
+        render();
+        if (hits.length) location.href = hits[0][2][1];
+      });
+    });
+    if (location.hash === '#pretraga') input.focus();
+  }
+
   document.querySelectorAll('input[data-filter]').forEach((input) => {
     const table = document.querySelector(input.dataset.filter);
     if (!table) return;

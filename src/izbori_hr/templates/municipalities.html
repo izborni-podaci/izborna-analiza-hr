@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% import "_macros.html" as mx with context %}
+{% block title %}{{ t('nav_municipalities') }}{% endblock %}
+{% block main %}
+{{ mx.crumbs([(t('crumbs_home'), link('index.html')), (t('nav_municipalities'), none)]) }}
+<h1 class="page-title">{{ t('nav_municipalities') }}</h1>
+<p class="lede">{{ t('mun_index_lede') }}</p>
+<label class="filter">{{ t('search_mun') }} <input type="search" data-filter="#mun-index" autocomplete="off"></label>
+<div class="table-wrap">
+<table id="mun-index" class="compact mun-index">
+  <thead><tr><th scope="col">{{ t('municipality') }}</th><th scope="col">{{ t('county') }}</th><th scope="col" class="num">{{ t('mun_index_elections') }}</th><th scope="col" class="num">{{ t('mun_index_stations') }}</th></tr></thead>
+  <tbody>
+  {% for m in rows %}
+    <tr data-text="{{ name(m.name) }} {{ name(m.county) }}"><td><a href="{{ link('m/' ~ m.code ~ '.html') }}">{{ name(m.name) }}</a></td><td class="muted">{{ t('abroad') if m.abroad else name(m.county) }}</td><td class="num">{{ i(m.n) }}</td><td class="num">{{ i(m.stations) }}<span class="muted small"> · {{ m.latest }}</span></td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

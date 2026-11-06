@@ -89,3 +89,68 @@ def digits(d: Digits, loc: str) -> Markup:
     parts.append(f'<line class="axis" x1="{left}" x2="{w - right}" y1="{top + ph}" y2="{top + ph}"/>')
     parts.append("</svg>")
     return Markup("".join(parts))
+
+
+def trend(points: list[dict], label: str, ref_label: str, loc: str, zero: bool = False, hits: bool = True) -> Markup:
+    """A small line chart across elections, oldest on the left (the Serbian archive's): this place in the accent
+    colour, the area it is compared with as a dashed grey line, the newest values labelled at the right, and each
+    election's column titled with both values. points: {"kind", "year", "title", "v", "r"}, oldest first; values
+    are shares (0–1) or None. A year is written under its first election only, where it doesn't touch the one before;
+    the parliament's dots are filled, the president's rounds hollow."""
+    vals = [p[k] for p in points for k in ("v", "r") if p[k] is not None]
+    if not vals:
+        return Markup("")
+    w, h, left, right, top, bottom = 600, 150, 38, 46, 10, 22
+    pw, ph = w - left - right, h - top - bottom
+    lo, hi = (0.0 if zero else min(vals)), max(vals)
+    step = _nice_step((hi - lo) or hi or 0.01, 3)
+    y0, y1 = math.floor(lo / step + 1e-9) * step, math.ceil(hi / step - 1e-9) * step
+    if y1 <= y0:
+        y1 = y0 + step
+    digits_ = 0 if abs(step * 100 - round(step * 100)) < 1e-9 else 1
+    slot = pw / len(points)
+
+    def x(i: int) -> int:
+        return round(left + (i + 0.5) * slot)
+
+    def y(v: float) -> int:
+        return round(top + ph - ph * (v - y0) / (y1 - y0))
+
+    out = [f'<svg class="chart trend" viewBox="0 0 {w} {h}" role="img" aria-label="{escape(label)}">']
+    ticks = [y0 + k * step for k in range(int(round((y1 - y0) / step)) + 1)]
+    out.append('<path class="grid" d="' + "".join(f"M{left} {y(v)}H{w - right}" for v in ticks) + '"/>')
+    out.append('<g class="tick" text-anchor="end">' + "".join(
+        f'<text x="{left - 6}" y="{y(v) + 4}">{fmt_pct(v, loc, digits_)}</text>' for v in ticks) + "</g>")
+    for i, p in enumerate(points if hits else []):
+        out.append(f'<rect class="hit" x="{round(left + i * slot)}" y="{top}" width="{max(1, round(slot))}" '
+                   f'height="{ph}"><title>{escape(p["title"])}: {fmt_pct(p["v"], loc)} ({escape(ref_label)} '
+                   f'{fmt_pct(p["r"], loc)})</title></rect>')
+    ends = []
+    for key, line, end in (("r", "trend-ref", "end-ref"), ("v", "trend-line", "end")):
+        known = [(i, p[key]) for i, p in enumerate(points) if p[key] is not None]
+        path, prev = "", None
+        for i, v in known:
+            path += f"{'L' if prev == i - 1 else 'M'}{x(i)} {y(v)}"
+            prev = i
+        out.append(f'<path class="{line}" d="{path}"/>')
+        if key == "v":
+            out.append('<g class="dot">' + "".join(
+                f'<circle cx="{x(i)}" cy="{y(v)}" r="3"{"" if points[i]["kind"] == "parliament" else " class=\"pres\""}/>'
+                for i, v in known) + "</g>")
+        if known:
+            i, v = known[-1]
+            ends.append([end, x(i) + 8, y(v) + 4, fmt_pct(v, loc)])
+    if len(ends) == 2 and abs(ends[0][2] - ends[1][2]) < 13:
+        lower, upper = sorted(ends, key=lambda e: e[2], reverse=True)
+        mid = (lower[2] + upper[2]) / 2
+        lower[2], upper[2] = round(mid + 6.5), round(mid - 6.5)
+    out.extend(f'<text class="{c}" x="{ex}" y="{min(max(ey, 12), top + ph + 4)}">{text}</text>'
+               for c, ex, ey, text in ends)
+    years, last = [], None
+    for i, p in enumerate(points):  # every year since 2000 has an election or two: a label where there's room
+        if p["year"] and (last is None or x(i) - x(last) >= 34):
+            years.append(f'<text x="{x(i)}" y="{h - 6}">{p["year"]}</text>')
+            last = i
+    out.append('<g class="tick" text-anchor="middle">' + "".join(years) + "</g>")
+    out.append("</svg>")
+    return Markup("".join(out))

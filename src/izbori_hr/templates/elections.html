@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% import "_macros.html" as mx with context %}
+{% block title %}{{ t('nav_elections') }}{% endblock %}
+{% block main %}
+{{ mx.crumbs([(t('crumbs_home'), link('index.html')), (t('nav_elections'), none)]) }}
+<h1 class="page-title">{{ t('elections_heading') }}</h1>
+<p class="lede">{{ t('elections_lede') }}</p>
+<div class="table-wrap">
+<table class="compact">
+  <thead><tr><th>{{ t('col_election') }}</th><th>{{ t('election_day') }}</th><th class="num">{{ t('turnout') }}</th><th class="num">{{ t('flagged') }}</th></tr></thead>
+  <tbody>
+  {% for e in elections %}{% for r in e.rounds %}{% set v = by_round[r.id] %}
+    <tr>
+      <td><a href="{{ link('r/' ~ r.id ~ '/index.html') }}">{{ e.title[loc] }}{% if e.rounds|length > 1 %} · {{ t('round_n', n=r.number) }}{% endif %}</a></td>
+      <td>{{ date(r.date) }}</td>
+      <td class="num">{{ pct(v.main.turnout, 2) }}</td>
+      <td class="num"><a href="{{ link('r/' ~ r.id ~ '/check.html') }}">{{ i(v.by_station|length) }}</a></td>
+    </tr>
+  {% endfor %}{% endfor %}
+  </tbody>
+</table>
+</div>
+{% endblock %}

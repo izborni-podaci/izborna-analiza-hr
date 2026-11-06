@@ -372,6 +372,153 @@ S: dict[str, tuple[str, str]] = {
                     "can't say which one is unusual."),
 }
 
+S.update({
+    # home
+    "nav_municipalities": ("Općine i gradovi", "Municipalities"),
+    "search_field": ("Općina, grad ili biračko mjesto", "Municipality, city or polling station"),
+    "search_placeholder": ("npr. Vukovar ili Split 25", "e.g. Vukovar or Split 25"),
+    "search_button": ("Traži", "Search"),
+    "search_none": ("Ništa nije pronađeno.", "Nothing found."),
+    "search_mun_sub": ("općina ili grad · izbora: {n}", "municipality · elections: {n}"),
+    "search_flagged": ("s oznakom na {k} od {n} izbora", "flagged in {k} of {n} elections"),
+    "search_clean": ("bez oznake · izbora: {n}", "no flag · elections: {n}"),
+    "search_former": ("ranije BM {n}", "formerly station {n}"),
+    "stats_line": ("Izbora i krugova: {n} ({first}–{last}) · biračkih mjesta kroz izbore: {places} · općina i gradova: "
+                   "{muns}",
+                   "Elections and rounds: {n} ({first}–{last}) · polling stations across elections: {places} · "
+                   "municipalities: {muns}"),
+    "intents_heading": ("Odakle krenuti", "Where to start"),
+    "intent_check_title": ("Što je neuobičajeno", "What's unusual"),
+    "intent_check_body": ("Biračka mjesta s oznakom: {n} od {total}.", "Flagged polling stations: {n} of {total}."),
+    "intent_check_cta": ("Provjere", "The checks"),
+    "intent_repeat_kicker": ("Svi izbori od 2000.", "Every election since 2000"),
+    "intent_repeat_body": ("Biračka mjesta s oznakom na dvoje ili više izbora: {n}.",
+                           "Polling stations flagged in two or more elections: {n}."),
+    "intent_mun_kicker": ("Kroz izbore", "Across elections"),
+    "intent_mun_title": ("Općina ili grad", "A municipality or city"),
+    "intent_mun_body": ("Izlaznost, nevažeći listići, tko je dobio najviše glasova i oznake, na svakim izborima.",
+                        "Turnout, invalid ballots, who had most votes and the flags, at every election."),
+    "intent_elections_kicker": ("Arhiva", "The archive"),
+    "intent_elections_title": ("Svi izbori", "Every election"),
+    "intent_elections_body": ("Sabor i predsjednik od 2000., svaki krug: rezultati, mandati, provjere, statistika.",
+                              "Parliament and president since 2000, every round: results, seats, checks, "
+                              "statistics."),
+    "intent_data_kicker": ("Podaci", "The data"),
+    "intent_data_title": ("Izvori i način rada", "Sources and method"),
+    "intent_data_body": ("DIP-ove datoteke u arhivi na GitHubu, oznake u CSV-u, pravila provjera.",
+                         "DIP's files in the archive on GitHub, the flags as CSV, the rules of the checks."),
+    "read_heading": ("Kako čitati stranice", "How to read the pages"),
+    "read1_title": ("Brojke su DIP-ove", "The numbers are DIP's"),
+    "read1_body": ("Svaka brojka dolazi iz DIP-ovih datoteka po biračkim mjestima; ništa se ne procjenjuje.",
+                   "Every number comes from DIP's files by polling station; nothing is estimated."),
+    "read2_title": ("Oznaka je pitanje", "A flag is a question"),
+    "read2_body": ("Brojke koje se ne slažu ili neobičan rezultat: često postoji obično objašnjenje.",
+                   "Numbers that don't add up, or an unusual result: often there is an ordinary explanation."),
+    "read3_title": ("Odgovor je u zapisniku", "The record has the answer"),
+    "read3_body": ("Zapisnik biračkog odbora i primjedbe njegovih članova kažu što se dogodilo.",
+                   "The polling board's record and its members' remarks say what happened."),
+    "trust_source": ("Izvor: DIP, arhiva izbora", "Source: DIP's election archive"),
+    "trust_same": ("Ista pravila za sve liste i kandidate", "The same rules for every list and candidate"),
+    "trust_code": ("Otvoreni kod i podaci", "Open code and data"),
+    "trust_private": ("Bez osobnih podataka, analitike i kolačića", "No personal data, analytics or cookies"),
+    "elections_lede": ("Svi izbori u arhivi, s izlaznošću i brojem biračkih mjesta s oznakom.",
+                       "Every election in the archive, with turnout and the number of flagged polling stations."),
+    "mun_index_lede": ("Svaka općina i grad abecednim redom, s brojem izbora u arhivi i biračkih mjesta na "
+                       "posljednjima. Države su na kraju. Biračka mjesta koja DIP-ove datoteke ne smještaju u "
+                       "općinu (mješovita 2003., prognanici, dijaspora koja glasuje u Hrvatskoj) su samo na "
+                       "stranicama svojih izbora.",
+                       "Every municipality and city in alphabetical order, with the number of elections in the "
+                       "archive and its polling stations at the latest. Countries come last. Polling stations that "
+                       "DIP's files don't place in a municipality (2003's mixed stations, displaced persons, the "
+                       "diaspora voting in Croatia) are on their own election's pages only."),
+    "mun_index_elections": ("Izbora", "Elections"),
+    "mun_index_stations": ("Biračkih mjesta", "Polling stations"),
+    "countries": ("Države (birališta u inozemstvu)", "Countries (stations abroad)"),
+
+    # across elections
+    "across": ("Kroz sve izbore", "Across all elections"),
+    "an_heading": ("Ukratko", "In short"),
+    "an_context_mun": ("Brojke posljednjih izbora uz ostale; općina se uspoređuje s cijelom zemljom.",
+                       "The latest election's figures beside the others; the municipality is compared with the "
+                       "whole country."),
+    "an_context_place": ("Brojke posljednjih izbora uz ostale; biračko mjesto se uspoređuje sa svojom općinom.",
+                         "The latest election's figures beside the others; the polling station is compared with its "
+                         "municipality."),
+    "an_note": ("Tekst je napisan iz brojki, istim pravilima za svako mjesto, i ne ocjenjuje ih.",
+                "The text is written from the numbers, by the same rules for every place, and doesn't judge them."),
+    "an_flags": ("Oznake", "Flags"),
+    "an_flagged_latest": ("{title}: s oznakom {n} od {total} biračkih mjesta",
+                          "{title}: {n} of {total} polling stations flagged"),
+    "an_flagged_elections": ("Izbora s barem jednom oznakom: {k} od {n}", "Elections with at least one flag: {k} of {n}"),
+    "an_turnout_vs": ("{title}: {x} ({ref}: {y})", "{title}: {x} ({ref}: {y})"),
+    "an_ref_country": ("cijela zemlja", "the whole country"),
+    "an_ref_mun": ("općina", "the municipality"),
+    "an_turnout_before": ("Prethodni izbori iste vrste ({title}): {y}", "The previous election of the kind ({title}): {y}"),
+    "an_most": ("Najviše glasova", "Most votes"),
+    "an_lead": ("{title}: {name}, {share}", "{title}: {name}, {share}"),
+    "an_lead_country": ("U cijeloj zemlji: {name}, {share}", "In the whole country: {name}, {share}"),
+    "an_lead_mun": ("U općini: {name}, {share}", "In the municipality: {name}, {share}"),
+    "an_stations": ("{title}: {n}", "{title}: {n}"),
+    "an_stations_first": ("{title}: {n}", "{title}: {n}"),
+    "an_place_flagged": ("S oznakom na {k} od {n} izbora", "Flagged in {k} of {n} elections"),
+    "an_place_flagged_last": ("Posljednji put: {title} ({names})", "Last: {title} ({names})"),
+    "an_place": ("Mjesto", "The place"),
+    "an_followed": ("Praćeno kroz izbora: {n}, od {title}", "Followed through {n} elections, from {title}"),
+    "place_former": ("Ranije BM {numbers}", "Formerly station {numbers}"),
+    "trend_label": ("Kroz izbore", "Across elections"),
+    "trend_turnout": ("Izlaznost", "Turnout"),
+    "trend_invalid": ("Nevažeći listići", "Invalid ballots"),
+    "trend_here_mun": ("Općina", "The municipality"),
+    "trend_ref_all": ("Cijela zemlja", "The whole country"),
+    "trend_here_place": ("Biračko mjesto", "The polling station"),
+    "trend_ref_mun": ("Općina", "The municipality"),
+    "trend_note": ("Puna točka: Sabor; prazna: krug predsjedničkih izbora. Pokazivač nad stupcem daje izbore i "
+                   "brojke.",
+                   "Filled dot: parliament; hollow: a presidential round. Hovering over a column gives the election "
+                   "and the figures."),
+    "mun_across_lede": ("Jedan red za svake izbore na kojima je općina bila; svaki vodi na njezinu stranicu tih "
+                        "izbora.",
+                        "One row for every election the municipality took part in; each leads to its page of that "
+                        "election."),
+    "col_election": ("Izbori", "Election"),
+    "top_three": ("Najviše glasova", "Most votes"),
+    "mun_places_heading": ("Biračka mjesta kroz izbore", "Polling stations across elections"),
+    "place_rule": ("Biračka mjesta prate se kroz izbore po adresi, zgradi i nazivu, a gdje toga nema (do 2009.) po "
+                   "broju; broj nikad ne spaja mjesta s različitom adresom ili zgradom.",
+                   "Polling stations are followed across elections by address, building and name, and where those "
+                   "are missing (until 2009) by number; a number never joins places whose address or building "
+                   "differs."),
+    "zagreb_note": ("Datoteke za Sabor dijele Zagreb na dijelove s vlastitim brojevima biračkih mjesta; ovdje su "
+                    "zajedno, a mjesta se kroz izbore spajaju po adresi i, unutar istog dijela, po broju.",
+                    "The parliamentary files split Zagreb into parts that number their own stations; here they are "
+                    "together, and stations are joined across elections by address and, within one part, by "
+                    "number."),
+    "col_elections": ("Izbora", "Elections"),
+    "col_flagged": ("S oznakom", "Flagged"),
+    "joined_address": ("po adresi", "by address"),
+    "joined_location": ("po zgradi", "by building"),
+    "joined_name": ("po nazivu", "by name"),
+    "joined_number": ("po broju", "by number"),
+    "place_lede": ("Jedan red za svake izbore na kojima je ovo biračko mjesto postojalo.",
+                   "One row for every election this polling station existed at."),
+    "address": ("Adresa", "Address"),
+    "area": ("Naziv", "Name"),
+    "no_flag": ("bez oznake", "no flag"),
+    "repeat_title": ("Više puta s oznakom", "Flagged more than once"),
+    "repeat_lede": ("Biračka mjesta s oznakom na dvoje ili više izbora, praćena kroz izbore. I ponovljena oznaka je "
+                    "pitanje: mjesto s mnogo nevažećih listića može ih imati na svakim izborima.",
+                    "Polling stations flagged in two or more elections, followed across elections. A repeated flag "
+                    "is still a question: a place with many invalid ballots may have them at every election."),
+    "repeat_count": ("Biračka mjesta s oznakom na dvoje ili više izbora: {n}",
+                     "Polling stations flagged in two or more elections: {n}"),
+    "repeat_k": ("Izbora s oznakom", "Elections flagged"),
+    "repeat_checks": ("Provjere", "Checks"),
+    "repeat_last": ("Posljednja oznaka", "Last flagged"),
+    "see_across": ("Kroz sve izbore", "Across all elections"),
+    "places_in_croatian": ("", "The polling stations' pages are in Croatian only, to keep the site within GitHub's "
+                               "limit of 1 GB."),
+})
+
 # the checks: name, the sentence with its numbers, and what to look at
 CHECK_TEXT: dict[str, dict[str, tuple[str, str]]] = {
     "sum_mismatch": {

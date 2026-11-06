@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% import "_macros.html" as mx with context %}
+{% block title %}{{ name(mname) }} · {{ t('across') }}{% endblock %}
+{% block main %}
+{{ mx.crumbs([(t('crumbs_home'), link('index.html')), (t('nav_municipalities'), link('municipalities.html')), (name(mname), none)]) }}
+<p class="kicker">{% if county %}{{ name(county) }} · {% endif %}{{ t('across') }}</p>
+<h1>{{ name(mname) }}</h1>
+{{ mx.analysis(analysis, t('an_context_mun')) }}
+{{ mx.trends(charts, t('trend_here_mun'), t('trend_ref_all')) }}
+{% if code == '21-grad-zagreb' %}<p class="rule">{{ t('zagreb_note') }}</p>{% endif %}
+<p class="rule">{{ t('mun_across_lede') }}</p>
+
+<div class="table-wrap history-wrap">
+<table class="history" role="table">
+  <thead role="rowgroup"><tr role="row">
+    <th role="columnheader">{{ t('col_election') }}</th><th role="columnheader" class="num">{{ t('stations') }}</th>
+    <th role="columnheader" class="num">{{ t('registered') }}</th><th role="columnheader" class="num">{{ t('voted') }}</th><th role="columnheader" class="num">{{ t('turnout') }}</th>
+    <th role="columnheader" class="num">{{ t('invalid') }}</th><th role="columnheader">{{ t('top_three') }}</th><th role="columnheader" class="num">{{ t('flagged') }}</th>
+  </tr></thead>
+  <tbody role="rowgroup">
+  {% for r in rows %}
+    <tr role="row">
+      {{ mx.history_election(r, link('r/' ~ r.rid ~ '/m/' ~ r.links[0][0] ~ '.html')) }}
+      <td role="cell" class="num l-stations">{{ i(r.count) }}{% if r.links|length > 1 %}<div class="small">{% for key, part in r.links %}<a href="{{ link('r/' ~ r.rid ~ '/m/' ~ key ~ '.html') }}">{{ name(part) }}</a>{% if not loop.last %} · {% endif %}{% endfor %}</div>{% endif %}</td>
+      <td role="cell" class="num l-registered">{{ i(r.registered) }}</td>
+      <td role="cell" class="num l-voted">{{ i(r.voted) }}</td>
+      <td role="cell" class="num l-turnout">{{ pct(r.turnout, 1) }}</td>
+      <td role="cell" class="num l-invalid">{{ pct(r.invalid_share, 1) }}</td>
+      {{ mx.history_top(r.top) }}
+      <td role="cell" class="num l-flagged">{% if r.flagged %}<a href="{{ link('r/' ~ r.rid ~ '/check.html') }}#m-{{ r.links[0][0] }}">{{ i(r.flagged) }}</a>{% else %}0{% endif %}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{% if places %}
+<h2>{{ t('mun_places_heading') }}</h2>
+<p class="rule">{{ t('place_rule') }}{% if loc != 'hr' %} {{ t('places_in_croatian') }}{% endif %}</p>
+<label class="filter">{{ t('filter_search') }} <input type="search" data-filter="#places" autocomplete="off"></label>
+<div class="table-wrap">
+<table class="compact places" id="places">
+  <thead><tr>
+    <th class="num" data-sort>{{ t('station_no') }}</th><th>{{ t('station') }}</th>
+    <th class="num" data-sort>{{ t('col_elections') }}</th><th class="num" data-sort>{{ t('col_flagged') }}</th>
+  </tr></thead>
+  <tbody>
+  {% for p in places %}
+    <tr{% if p.k %} class="flagged"{% endif %}>
+      <td class="num" data-v="{{ p.number }}">{{ p.number }}</td>
+      <td><a href="{{ root }}s/{{ p.id }}.html"{% if loc != 'hr' %} hreflang="hr"{% endif %}>{{ p.label }}</a>{% if p.sub %}<div class="small muted">{{ p.sub }}</div>{% endif %}</td>
+      <td class="num" data-v="{{ p.n }}">{{ p.n }}</td>
+      <td class="num" data-v="{{ p.k }}">{{ p.k }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+{% endif %}
+{% endblock %}

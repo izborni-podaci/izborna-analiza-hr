@@ -43,7 +43,18 @@ constituencies I–X only.
 
   Stations abroad, special stations (care homes, hospitals, prisons, ships) and constituency XII (the national
   minorities, whose voters may vote anywhere) get the arithmetic checks only.
-- **Every municipality and city**, with its stations, in each constituency they voted in.
+- **Every municipality and city**, with its stations, in each constituency they voted in, on each round's pages.
+- **Every municipality across elections** (`m/<code>.html`): a row for every round since 2000 (turnout, invalid
+  ballots, the three with most votes, flagged stations), charts of turnout and invalid ballots against the whole
+  country, and a short text of the latest numbers beside the earlier ones. Renamed municipalities, Istria's
+  bilingual names and the parts of Zagreb the parliament counts apart are joined under the newest name.
+- **Every polling station across elections** (`s/<id>.html`): regular stations at home are followed from election
+  to election by their address, building, settlement or number (`places.py`), the same way for every station.
+  These pages are in Croatian only, as both languages would pass GitHub Pages' 1 GB limit; the English pages link
+  to them.
+- **Search** on the home page for a municipality or a polling station (by number, building or settlement), from one
+  file (`search.json`) loaded when the search is first used; **every election** on one page; and the stations
+  **flagged in two or more elections**.
 - **Statistics**, never station flags: turnout across stations, last digits, round percentages, and the same tests
   per municipality with the Bonferroni correction.
 - **Downloads:** the flags as CSV (`api/r/<round>/flags.csv`); DIP's own files are in `data/`.
@@ -62,8 +73,8 @@ A file is written only when DIP's zip changed, so the git history records what D
 ```
 uv sync
 uv run izbori-hr fetch [election ...]   # download DIP's zips; writes only what changed
-uv run izbori-hr site --out _site       # build the site (about 80 s, 400 MB)
-uv run pytest -q                        # every test (about 2 minutes)
+uv run izbori-hr site --out _site       # build the site (about 2 minutes, 620 MB, 37,000 files)
+uv run pytest -q                        # every test (about 3 minutes)
 ```
 
 ## Workflows
@@ -85,6 +96,8 @@ uv run pytest -q                        # every test (about 2 minutes)
 | `seats.py` | D'Hondt and the minorities' seats |
 | `checks.py` | the station checks and their thresholds |
 | `stats.py` | last digits, round percentages, per-municipality tests |
+| `places.py` | municipalities and polling stations followed through every election |
+| `history.py` | the pages across elections: their rows, short texts and charts |
 | `site.py`, `templates/`, `static/` | the static site |
 | `i18n.py` | the site's text in Croatian and English, number and name formats |
 | `svg.py` | the charts, drawn when the site is built |

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% import "_macros.html" as mx with context %}
+{% set s = p.newest %}
+{% block title %}{{ name(mname) }} · {{ t('station_no') }} {{ s.number }}{% endblock %}
+{% block main %}
+{{ mx.crumbs([(t('crumbs_home'), link('index.html')), (name(mname), link('m/' ~ p.code ~ '.html')), (t('station_no') ~ ' ' ~ s.number, none)]) }}
+<p class="kicker">{{ name(mname) }} · {{ t('across') }}</p>
+<h1 class="station-title">{{ t('station_no') }} {{ s.number }}{% if s.location %} · {{ s.location }}{% endif %}</h1>
+{% if s.address or s.name %}<p class="muted">{% if s.name %}{{ t('area') }}: {{ s.name }}{% endif %}{% if s.name and s.address %} · {% endif %}{% if s.address %}{{ t('address') }}: {{ s.address }}{% endif %}</p>{% endif %}
+{{ mx.analysis(analysis, t('an_context_place')) }}
+{{ mx.trends(charts, t('trend_here_place'), t('trend_ref_mun')) }}
+<p class="rule">{{ t('place_lede') }}</p>
+
+<div class="table-wrap history-wrap">
+<table class="history" role="table">
+  <thead role="rowgroup"><tr role="row">
+    <th role="columnheader">{{ t('col_election') }}</th><th role="columnheader">{{ t('station') }}</th>
+    <th role="columnheader" class="num">{{ t('registered') }}</th><th role="columnheader" class="num">{{ t('voted') }}</th><th role="columnheader" class="num">{{ t('turnout') }}</th>
+    <th role="columnheader" class="num">{{ t('invalid') }}</th><th role="columnheader">{{ t('top_three') }}</th><th role="columnheader">{{ t('flags') }}</th>
+  </tr></thead>
+  <tbody role="rowgroup">
+  {% for r in rows %}{% set st = r.stations[0] %}
+    <tr role="row"{% if r.flags %} class="flagged"{% endif %}>
+      {{ mx.history_election(r, link('r/' ~ r.rid ~ '/m/' ~ st.mun_key ~ '.html') ~ '#s-' ~ st.contest ~ '-' ~ st.key.split('/', 1)[1]) }}
+      <td role="cell" class="block l-station"><span class="nowrap">{{ t('station_no') }} {{ st.number }}</span>{% if st.location %} · {{ st.location }}{% endif %}{% if r.how %} <span class="small muted">({{ t('joined_' ~ r.how) }})</span>{% endif %}{% if st.mun_key != p.code and r.view.kind == 'parliament' and st.county_no == '21' %}<div class="small muted">{{ name(st.municipality) }}</div>{% endif %}</td>
+      <td role="cell" class="num l-registered">{{ i(r.registered) }}</td>
+      <td role="cell" class="num l-voted">{{ i(r.voted) }}</td>
+      <td role="cell" class="num l-turnout">{{ pct(r.turnout, 1) }}</td>
+      <td role="cell" class="num l-invalid">{{ i(r.invalid) }}</td>
+      {{ mx.history_top(r.top) }}
+      <td role="cell" class="block l-flags">{% if r.flags %}<ul class="flags">{% for f in r.flags %}<li class="flag g-{{ f.check.group }}"><span><strong>{{ check_name(f.code) }}.</strong> {{ flag_text(r.view, f) }}</span></li>{% endfor %}</ul>{% else %}<span class="muted">{{ t('no_flag') }}</span>{% endif %}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+</div>
+<p class="rule">{{ t('place_rule') }}</p>
+
+{% if hints %}
+<section>
+  <h2>{{ t('what_to_check') }}</h2>
+  <p class="principle">{{ t('principle') }}</p>
+  <ul>{% for code in hints %}<li><span class="sym-line">{{ mx.sym(code, group_of[code]) }}<strong>{{ check_name(code) }}.</strong></span> {{ hint(code) }}</li>{% endfor %}</ul>
+</section>
+{% endif %}
+{% endblock %}

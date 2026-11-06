@@ -27,7 +27,7 @@ from izbori_hr.results import (ROMAN, Contestant, RoundResults, Station, clean, 
                                minority_contest, president_contest, slug)
 
 ROLES = [  # what a column holds, by its name in DIP's files (lower case, spaces collapsed)
-    ("unit_city", r"izborna jedinica grada"),
+    ("unit_city", r"izborna jedinica grada.*"),
     ("unit", r"izborna jedinica"),
     ("municipality", r"grad\s*/\s*općin\w*(\s*/\s*država)?|grad/općina|država"),
     ("number", r"bm rbr|(redni )?broj bi\w*čkog mjesta|broj bm|biračko mjesto"),  # 2005: "biačkog"
@@ -100,10 +100,9 @@ def number_of(value) -> str:
 # ---- counties: the older parliamentary files name the municipality only ------------------------------------------
 
 @lru_cache(maxsize=4)
-def county_lookup(data_dir: str) -> dict[str, tuple[str, str]]:
-    """Municipality → (county number, county), from the presidential rounds that name both: the newest first."""
-    out: dict[str, tuple[str, str]] = {}
-    twice: set[str] = set()  # names of two municipalities (Otok): left without a county
+def _counties_of(data_dir: str) -> dict[str, dict[str, str]]:
+    """Municipality → {county number: county}, from the presidential rounds that name both, the newest first."""
+    out: dict[str, dict[str, str]] = {}
     for round_id in ("predsjednik-2024-1", "predsjednik-2019-1", "predsjednik-2014-1", "predsjednik-2009-1"):
         if round_id not in ROUNDS:
             continue
@@ -111,14 +110,16 @@ def county_lookup(data_dir: str) -> dict[str, tuple[str, str]]:
         if not (Path(data_dir) / election.id / "raw").is_dir():
             continue
         from izbori_hr.results import load
-        seen: dict[str, str] = {}
         for s in load(round_id, Path(data_dir)).stations:
-            if s.kind != "abroad" and s.county_no:
-                key = slug(s.municipality)
-                if seen.setdefault(key, s.county_no) != s.county_no:
-                    twice.add(key)
-                out.setdefault(key, (s.county_no, s.county))
-    return {k: v for k, v in out.items() if k not in twice}
+            if s.kind == "domestic" and s.county_no:  # 2009 lists a special station of Karlovac in county 3
+                out.setdefault(slug(s.municipality), {}).setdefault(s.county_no, s.county)
+    return out
+
+
+@lru_cache(maxsize=4)
+def county_lookup(data_dir: str) -> dict[str, tuple[str, str]]:
+    """Municipality → (county number, county); names of two municipalities (Otok, Privlaka) are left out."""
+    return {k: next(iter(v.items())) for k, v in _counties_of(data_dir).items() if len(v) == 1}
 
 
 @lru_cache(maxsize=4)
@@ -136,11 +137,30 @@ def _county_key(name: str) -> str:
 
 ALIASES = {  # municipalities renamed since, as the older files write them
     "barilovici": "barilovic", "donji-martijanec": "martijanec", "sveta-nedjelja": "sveta-nedelja",
+    "skabrnje": "skabrnja",
 }
 PLACES = {"otok-vinkovci": ("16", "VUKOVARSKO-SRIJEMSKA ŽUPANIJA")}  # two municipalities are called Otok
 
 
-def place(name: str, data_dir: Path) -> tuple[str, str]:
+@lru_cache(maxsize=4)
+def constituency_lookup(data_dir: str) -> dict[tuple[str, str], tuple[str, str]]:
+    """(constituency, municipality) → (county number, county), from the parliamentary files that name both, with the
+    constituencies drawn in 1999 (2015–2020): two municipalities called Otok, or Privlaka, are in different ones."""
+    out: dict[tuple[str, str], tuple[str, str]] = {}
+    for round_id in ("sabor-2020", "sabor-2016", "sabor-2015"):
+        election, _ = ROUNDS[round_id]
+        if not (Path(data_dir) / election.id / "raw").is_dir():
+            continue
+        from izbori_hr.results import load
+        for s in load(round_id, Path(data_dir)).stations:
+            if s.kind == "domestic" and s.county_no and s.contest in ROMAN[1:11]:
+                # Istria's names are bilingual since; the older files write the Croatian one ("NOVIGRAD")
+                for name in (s.municipality, s.municipality.split(" - ")[0]):
+                    out.setdefault((s.contest, slug(name)), (s.county_no, s.county))
+    return out
+
+
+def place(name: str, data_dir: Path, contest: str = "") -> tuple[str, str]:
     lookup = county_lookup(str(data_dir))
     key = ALIASES.get(slug(name), slug(name))
     if key in PLACES:
@@ -148,6 +168,8 @@ def place(name: str, data_dir: Path) -> tuple[str, str]:
     found = lookup.get(key)
     if found:
         return found
+    if contest in ROMAN[1:11] and (contest, key) in constituency_lookup(str(data_dir)):
+        return constituency_lookup(str(data_dir))[(contest, key)]
     longer = {v for k, v in lookup.items() if k.startswith(key)}  # 2011 cuts long names: "… - CASTELLIERE-S. D"
     if len(longer) == 1:
         return longer.pop()
@@ -181,8 +203,8 @@ def _report(rows: list[list[str]], cid: str, kind: str, data_dir: Path, file_uni
             row_kind = "abroad"
         if mixed:  # 2003: embassies, clubs abroad, displaced persons, institutions, a constituency's voters each
             row_kind = "special"
-        if municipality.upper() == "DIJASPORA U RH":
-            row_kind = "special"  # voters living abroad, voting in Croatia
+        if municipality.upper() == "DIJASPORA U RH" or municipality.upper().startswith("PROGNANICI"):
+            row_kind = "special"  # voters living abroad, voting in Croatia; displaced persons (2000)
         get = lambda role: count(r[cols[role]]) if role in cols and cols[role] < len(r) else None  # noqa: E731
         valid, invalid = get("valid") or 0, get("invalid") or 0
         voted, ballots = get("voted"), get("ballots")
@@ -190,7 +212,14 @@ def _report(rows: list[list[str]], cid: str, kind: str, data_dir: Path, file_uni
             ballots = valid + invalid if voted is None else voted
         if voted is None:
             voted = ballots
-        county_no, county = ("", "") if row_kind == "abroad" else place(municipality, data_dir)
+        # the minorities' files of 2007 and 2011 say which constituency a municipality is in
+        unit = cid
+        for role in ("unit_city", "unit"):
+            value = r[cols[role]].strip() if role in cols and cols[role] < len(r) else ""
+            if cid.startswith("XII") and value.isdigit() and 1 <= int(value) <= 10:
+                unit = ROMAN[int(value)]
+                break
+        county_no, county = ("", "") if row_kind == "abroad" else place(municipality, data_dir, unit)
         text = lambda role: clean(r[cols[role]]) if role in cols and cols[role] < len(r) else ""  # noqa: E731
         stations.append(Station(
             contest=cid, kind=row_kind, county_no=county_no, county=county,
@@ -199,7 +228,24 @@ def _report(rows: list[list[str]], cid: str, kind: str, data_dir: Path, file_uni
             registered=get("registered") or 0, voted=voted, ballots=ballots, valid=valid, invalid=invalid,
             votes=[count(x) for x in (r[first:first + len(names)] + [""] * len(names))[:len(names)]],
             unit=file_unit))
+    _between(stations, data_dir)
     return names, stations
+
+
+def _between(stations: list[Station], data_dir: Path) -> None:
+    """A name two municipalities share, where the file doesn't say the constituency (2003's minorities): DIP lists
+    regular stations county by county, so the municipality takes the county of those before and after it when they
+    agree and it is one of the name's."""
+    shared = {k: v for k, v in _counties_of(str(data_dir)).items() if len(v) > 1}
+    home = [s for s in stations if s.kind == "domestic"]
+    for i, s in enumerate(home):
+        options = shared.get(ALIASES.get(slug(s.municipality), slug(s.municipality)), {})
+        if s.county_no or not options:
+            continue
+        around = [next((x.county_no for x in side if x.municipality != s.municipality and x.county_no), "")
+                  for side in (reversed(home[:i]), home[i + 1:])]
+        if around[0] == around[1] and around[0] in options:
+            s.county_no, s.county = around[0], options[around[0]]
 
 
 FILE_2007 = re.compile(r"^\d+_(?P<roman>[IVX]+)(?:_nm(?P<g>\d))?_izborna_jedinica_(?P<part>.+)\.csv$")
@@ -335,6 +381,7 @@ def read_president_old(election: Election, round_: Round, raw: Path) -> RoundRes
             municipality, place_kind = clean(r[name_col]), clean(r[kind_col]).lower()
         else:
             municipality, place_kind = _strip_kind(clean(r[cols["municipality"]]))
+        special = municipality.upper() == "DIJASPORA U RH"  # voters living abroad, voting in Croatia (2005)
         if abroad:
             county_no, county, place_kind = "", "inozemstvo", "država"
         elif county_no_col is not None and number_of(r[county_no_col]):
@@ -345,7 +392,7 @@ def read_president_old(election: Election, round_: Round, raw: Path) -> RoundRes
         voted = count(r[cols["voted"]]) if "voted" in cols else None
         ballots = count(r[cols["ballots"]]) if "ballots" in cols else None
         stations.append(Station(
-            contest="RH", kind="abroad" if abroad else "special" if int(number) >= 900 else "domestic",
+            contest="RH", kind="abroad" if abroad else "special" if special or int(number) >= 900 else "domestic",
             county_no=county_no, county=county, place_kind=place_kind, municipality=municipality, number=number,
             name="", location="", address="", registered=count(r[cols["registered"]]),
             voted=voted if voted is not None else ballots, ballots=ballots if ballots is not None else valid + invalid,

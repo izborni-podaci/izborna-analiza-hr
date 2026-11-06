@@ -5,6 +5,7 @@
 {{ mx.round_nav('', name(m.name)) }}
 <p class="kicker">{{ rtitle }} · {{ t('abroad') if m.abroad else name(m.county) }}</p>
 <h1>{{ name(m.name) }}</h1>
+{% set across = mun_code(m.stations[0]) %}{% if across %}<p><a href="{{ link('m/' ~ across ~ '.html') }}">{{ t('see_across') }}</a></p>{% endif %}
 {{ mx.source(view) }}
 
 <section class="tiles">
@@ -40,7 +41,8 @@
       <tr id="s-{{ s.contest }}-{{ s.key.split('/', 1)[1] }}"{% if fl %} class="flagged"{% endif %}>
         <td class="num">{{ s.number or '—' }}{% if s.kind == 'special' and view.kind == 'parliament' %} <span class="muted small" title="{{ t('kind_special') }}">P</span>{% endif %}</td>
         {% set sub = [t('kind_' ~ s.kind) if s.kind != 'domestic' else '', (t('unit') ~ ' ' ~ s.unit) if (s.unit and minority and s.kind == 'special') else '', s.name if s.location else '', s.address]|select|list %}
-        <td>{{ s.location or s.name or t('station') }}{% if sub %}<div class="small muted">{{ sub|join(' · ') }}</div>{% endif %}</td>
+        {% set pl = place_of(s) %}
+        <td>{% if pl %}<a href="{{ root }}s/{{ pl.id }}.html">{{ s.location or s.name or t('station') }}</a>{% else %}{{ s.location or s.name or t('station') }}{% endif %}{% if sub %}<div class="small muted">{{ sub|join(' · ') }}</div>{% endif %}</td>
         {% if not minority %}<td class="num">{{ i(s.registered) }}</td>{% endif %}<td class="num">{{ i(s.voted) }}</td>
         {% if not minority %}<td class="num">{% if s.kind == 'domestic' %}{{ pct(s.turnout, 1) }}{% else %}—{% endif %}</td>{% endif %}
         <td class="num">{{ i(s.ballots) }}</td><td class="num">{{ i(s.invalid) }}</td>

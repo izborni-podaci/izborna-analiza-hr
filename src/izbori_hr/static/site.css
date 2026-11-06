@@ -552,3 +552,13 @@ table.shares td.heat { background: color-mix(in srgb, var(--accent) calc(var(--h
   .ex-side { max-height: 420px; }
   .ex-actions .button { width: auto; flex: 1 1 auto; }
 }
+
+/* Croatian archive: flags in the tables across elections carry a coloured dot, not an inline symbol (size budget) */
+table.history .flag::before { content: ""; flex: none; width: 8px; height: 8px; border-radius: 50%; position: relative; top: -0.05em; background: currentColor; }
+table.history .flag.g-paper::before { color: var(--critical); }
+table.history .flag.g-unusual::before { color: var(--warning); }
+table.history .flag > span { color: var(--ink); }
+.chart.trend { max-width: 100%; }
+.chart .dot .pres { fill: var(--page); stroke: var(--accent); stroke-width: 1.5; }
+.trends { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+.trends-wrap { max-width: none; }

@@ -9,6 +9,7 @@ import csv
 import io
 import json
 import math
+import re
 import shutil
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
@@ -20,6 +21,8 @@ from jinja2 import Environment, FileSystemLoader, StrictUndefined, select_autoes
 from markupsafe import Markup
 
 from izbori_hr import i18n, stats, svg
+from izbori_hr.history import History
+from izbori_hr.places import follow
 from izbori_hr.checks import BY_CODE, CHECKS, GROUPS, RULES, Flag, regular, station_flags
 from izbori_hr.elections import PUBLISHED, Election, Round
 from izbori_hr.i18n import LANGS, collate, fmt_date, fmt_int, fmt_num, fmt_p, fmt_pct, nice, t
@@ -293,22 +296,29 @@ def contest_name(view: RoundView, cid: str, loc: str) -> str:
 class Site:
     def __init__(self, out: Path, views: list[RoundView]):
         self.out = out
-        self.views = views
+        self.views = views  # newest first
+        oldest = sorted(views, key=lambda v: v.round.date)
+        self.places, self.keys = follow([v.rnd for v in oldest])
+        self.history = History(oldest, self.places, self.keys, short_name)
         templates = resources.files("izbori_hr") / "templates"
         self.env = Environment(loader=FileSystemLoader(str(templates)), autoescape=select_autoescape(["html"]),
                                undefined=StrictUndefined, trim_blocks=True, lstrip_blocks=True)
         self.written = 0
 
     def put(self, path: str, text: str) -> None:
+        if path.endswith(".html"):
+            text = INDENT.sub("\n", text)  # templates indent for people; pages needn't carry it (size budget)
         target = self.out / path
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(text, encoding="utf-8")
         self.written += 1
 
-    def render(self, template: str, page: str, loc: str, **ctx) -> None:
+    def render(self, template: str, page: str, loc: str, other_page: str | None = None, **ctx) -> None:
+        """other_page: the page the other language's link opens, where it has no version of this one."""
         up = "../" * page.count("/")
         root = up + ("../" if loc == "en" else "")
-        langs = [{"lang": other, "label": LANG_LABELS[other], "href": root + PREFIX[other] + page,
+        langs = [{"lang": other, "label": LANG_LABELS[other],
+                  "href": root + PREFIX[other] + (page if other == loc or other_page is None else other_page),
                   "current": other == loc} for other in LANGS]
         env = dict(
             loc=loc, lang=loc, page=page, root=root, langs=langs, repo_url=REPO, serbia_url=SERBIA,
@@ -333,20 +343,184 @@ class Site:
         (self.out / ".nojekyll").write_text("", encoding="utf-8")
         for view in self.views:
             self.put(f"api/r/{view.id}/flags.csv", flags_csv(view))
+        self.put("static/labels.css", cell_labels())
+        self.put("search.json", self.search_index())
+        repeated = self.repeated()
+        home = dict(rounds=len(self.views), first=min(v.round.date[:4] for v in self.views),
+                    last=max(v.round.date[:4] for v in self.views), places=len(self.places.places),
+                    muns=sum(1 for c in self.history.municipalities() if not c.startswith("ino-")),
+                    repeated=len(repeated))
+        index = self.municipality_index()
+        jobs: list[tuple[int, object]] = []  # (weight, job)
         for loc in LANGS:
-            self.render("index.html", "index.html", loc, views=self.views, elections=PUBLISHED,
-                        by_round={v.id: v for v in self.views})
-            self.render("about.html", "about.html", loc, elections=PUBLISHED, metas={v.election.id: v.meta
-                                                                                   for v in self.views})
+            def overview(loc=loc):
+                self.render("index.html", "index.html", loc, home=home, latest=self.views[0])
+                self.render("elections.html", "elections.html", loc, elections=PUBLISHED,
+                            by_round={v.id: v for v in self.views})
+                self.render("about.html", "about.html", loc, elections=PUBLISHED,
+                            metas={v.election.id: v.meta for v in self.views})
+                self.render("municipalities.html", "municipalities.html", loc, rows=index)
+                self.render("repeat.html", "repeat.html", loc, rows=repeated,
+                            group_of={c.code: c.group for c in CHECKS})
+            jobs.append((1, overview))
             for view in self.views:
-                self.round_pages(view, loc)
+                jobs.append((3 if view.kind == "parliament" else 2, lambda view=view, loc=loc: self.round_pages(view, loc)))
+            jobs.append((3, lambda loc=loc: self.municipality_history_pages(loc)))
+        chunk = 1500
+        for start in range(0, len(self.places.places), chunk):
+            jobs.append((2, lambda start=start: self.place_pages(self.places.places[start:start + chunk], "hr")))
+        self.parallel(jobs)
         self.render("404.html", "404.html", "hr")
+
+    def parallel(self, jobs: list[tuple[int, object]]) -> None:
+        """Run the jobs that write pages in forked processes, one per CPU, the heaviest first, each to the least
+        loaded process. Where processes can't be forked (Windows), or IZBORI_SERIAL is set, they run here in turn;
+        the pages are the same."""
+        import multiprocessing
+        import os
+        workers = min(len(jobs), os.cpu_count() or 1)
+        if workers < 2 or os.environ.get("IZBORI_SERIAL") or "fork" not in multiprocessing.get_all_start_methods():
+            for _, job in jobs:
+                job()
+            return
+        groups: list[list] = [[] for _ in range(workers)]
+        load = [0] * workers
+        for weight, job in sorted(jobs, key=lambda j: -j[0]):
+            k = load.index(min(load))
+            groups[k].append(job)
+            load[k] += weight
+        ctx = multiprocessing.get_context("fork")
+        running = []
+        for group in groups:
+            receive, send = ctx.Pipe(duplex=False)
+            proc = ctx.Process(target=_write_pages, args=(self, group, send))
+            proc.start()
+            send.close()
+            running.append((proc, receive))
+        errors = []
+        for proc, receive in running:
+            try:
+                written, error = receive.recv()
+            except EOFError:
+                written, error = 0, "a process writing pages died"
+            proc.join()
+            self.written += written
+            if error:
+                errors.append(error)
+        if errors:
+            raise RuntimeError("\n".join(errors))
+
+    # ---- across elections --------------------------------------------------------------------------------------
+
+    def municipality_index(self) -> list[dict]:
+        h = self.history
+        rows = []
+        for code in h.municipalities():
+            mrows = h.mun_rows(code)
+            if not mrows:
+                continue
+            rows.append(dict(code=code, name=h.names[code], county=h.counties.get(code, ""),
+                             abroad=code.startswith("ino-"), n=len(mrows), stations=mrows[0].count,
+                             latest=mrows[0].view.short("hr")))
+        rows.sort(key=lambda r: (r["abroad"], collate(nice(r["name"]))))
+        return rows
+
+    def repeated(self) -> list[dict]:
+        """Places flagged in two or more elections, the most often flagged first."""
+        out = []
+        for p in self.places.places:
+            k = self.history.flagged_in(p)
+            if k < 2:
+                continue
+            codes: Counter = Counter()
+            last = None
+            for rid in p.rounds:  # newest first
+                fl = self.history.view_of[rid].by_station.get((p.stations[rid].contest, p.stations[rid].key), [])
+                codes.update({f.code for f in fl})
+                if fl and last is None:
+                    last = self.history.view_of[rid].short("hr")
+            s = p.newest
+            out.append(dict(id=p.id, code=p.code, mun=self.history.names.get(p.code, s.municipality),
+                            number=s.number, label=s.location or s.name, k=k, n=len(p.rounds),
+                            codes=sorted(codes.items(), key=lambda kv: (-kv[1], kv[0])), last=last))
+        out.sort(key=lambda r: (-r["k"], -r["n"], collate(r["mun"]), int(r["number"]) if r["number"].isdigit() else 0))
+        return out
+
+    def search_index(self) -> str:
+        """search.json for the search on the home page, kept small. Municipalities: [name, code, elections]. Places:
+        [municipality's index, number, building or name, page, elections flagged, elections, former numbers],
+        flagged ones first. Names are DIP's, the same in both languages."""
+        h = self.history
+        codes = [r["code"] for r in self.municipality_index()]
+        at = {code: i for i, code in enumerate(codes)}
+        rows = []
+        for p in self.places.places:
+            if p.code not in at:
+                continue
+            s, k = p.newest, h.flagged_in(p)
+            rows.append((-k, at[p.code], int(s.number) if s.number.isdigit() else 0,
+                         [at[p.code], s.number, s.location or s.name, p.id, k, len(p.rounds),
+                          ", ".join(p.former_numbers)]))
+        rows.sort(key=lambda r: r[:3])
+        data = {"m": [[nice(h.names[c]), c, len(h.mun_rows(c))] for c in codes], "s": [r[3] for r in rows]}
+        return json.dumps(data, ensure_ascii=False, separators=(",", ":"))
+
+    def municipality_history_pages(self, loc: str) -> None:
+        h = self.history
+        for code in h.municipalities():
+            rows = h.mun_rows(code)
+            if not rows:
+                continue
+            charts = [dict(title=t("trend_turnout", loc), svg=svg.trend(
+                          h.points(rows, h.national, "turnout", loc), t("trend_turnout", loc),
+                          t("trend_ref_all", loc), loc)),
+                      dict(title=t("trend_invalid", loc), svg=svg.trend(
+                          h.points(rows, h.national, "invalid_share", loc), t("trend_invalid", loc),
+                          t("trend_ref_all", loc), loc, zero=True))]
+            places = []
+            for p in self.places.in_municipality(code):
+                s = p.newest
+                places.append(dict(id=p.id, number=s.number, label=s.location or s.name or t("station", loc),
+                                   sub=" · ".join(x for x in (s.name if s.location else "", s.address,
+                                                              t("place_former", loc, numbers=", ".join(p.former_numbers))
+                                                              if p.former_numbers else "") if x),
+                                   n=len(p.rounds), k=h.flagged_in(p)))
+            places.sort(key=lambda r: (int(r["number"]) if r["number"].isdigit() else 0, r["id"]))
+            self.render("mun_history.html", f"m/{code}.html", loc, code=code, mname=h.names[code],
+                        county=h.counties.get(code, ""), rows=rows, places=places,
+                        analysis=h.analysis_mun(code, loc), charts=[c for c in charts if c["svg"]])
+    def place_pages(self, places: list, loc: str) -> None:
+        """The places' pages are Croatian only: in both languages they would pass GitHub's 1 GB."""
+        h = self.history
+        group_of = {c.code: c.group for c in CHECKS}
+        texts = lambda view, f: flag_text(f, view, loc)  # noqa: E731
+        for p in places:
+            rows = h.place_rows(p)
+            mun = {r.rid: r for r in h.mun_rows(p.code)}
+            charts = [dict(title=t("trend_turnout", loc), svg=svg.trend(
+                          h.points(rows, mun, "turnout", loc), t("trend_turnout", loc), t("trend_ref_mun", loc), loc,
+                          hits=False)),
+                      dict(title=t("trend_invalid", loc), svg=svg.trend(
+                          h.points(rows, mun, "invalid_share", loc), t("trend_invalid", loc),
+                          t("trend_ref_mun", loc), loc, zero=True, hits=False))] if len(rows) > 1 else []
+            hints = list(dict.fromkeys(f.code for r in rows for f in r.flags))
+            self.render("place.html", f"s/{p.id}.html", loc, other_page=f"m/{p.code}.html",
+                        p=p, mname=h.names.get(p.code, p.newest.municipality),
+                        rows=rows, analysis=h.analysis_place(p, loc), charts=[c for c in charts if c["svg"]],
+                        hints=hints, group_of=group_of, flag_text=texts)
+
+    def across_code(self, s) -> str:
+        """The page across elections of a station's municipality; none for stations without one."""
+        code = self.keys(s)
+        return code if self.keys.placed(code) else ""
 
     def round_pages(self, view: RoundView, loc: str) -> None:
         base = f"r/{view.id}/"
+        places = self.places
         common = dict(view=view, rnd=view.rnd, base=base, rtitle=view.title(loc), rshort=view.short(loc),
                       cname=lambda cid: contest_name(view, cid, loc), short_name=short_name,
-                      flag_text=lambda f: flag_text(f, view, loc))
+                      flag_text=lambda f: flag_text(f, view, loc), mun_code=self.across_code,
+                      place_of=lambda s: places.of(view.id, s.key) if s.kind == "domestic" else None)
         order = list(view.rnd.contests)
         self.render("round.html", base + "index.html", loc, stats=round_stats(view, loc), **common)
         self.render("check.html", base + "check.html", loc, cards=cards(view), **common)
@@ -366,6 +540,33 @@ class Site:
                                      votes=votes, valid=sum(s.valid for s in stations),
                                      voted=sum(s.voted for s in stations)))
             self.render("municipality.html", f"{base}m/{m.key}.html", loc, m=m, sections=sections, **common)
+
+
+INDENT = re.compile(r"\n[ \t]*(?:\n[ \t]*)*")
+LABELLED = ("stations", "registered", "voted", "turnout", "invalid", "top_three", "flagged", "station", "flags")
+
+
+def cell_labels() -> str:
+    """The labels a table across elections shows inside each cell on a phone, in both languages: once here rather
+    than on every cell of every page (cells carry the class l-<key>)."""
+    def quote(text: str) -> str:
+        return '"' + text.replace("\\", "\\\\").replace('"', '\\"') + '"'
+    rules = [f"  :lang({loc}) table.history td.l-{key}::before {{ content: {quote(t(key, loc))}; }}"
+             for loc in LANGS for key in LABELLED]
+    return "@media (max-width: 600px) {\n" + "\n".join(rules) + "\n}\n"
+
+
+def _write_pages(site: "Site", jobs: list, send) -> None:
+    import traceback
+    site.written = 0
+    try:
+        for job in jobs:
+            job()
+        send.send((site.written, ""))
+    except Exception:  # noqa: BLE001 - reported to the parent, which fails the build
+        send.send((site.written, traceback.format_exc()))
+    finally:
+        send.close()
 
 
 def station_order(s: Station) -> tuple:

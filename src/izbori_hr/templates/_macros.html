@@ -129,3 +129,39 @@
 {% if lists %}<p class="rule">{{ t('threshold_line', n=i(c.threshold_votes)) }} {{ t('marker_threshold') }}</p>
 {% elif c.id == 'RH' %}<p class="rule">{{ t('marker_half') }}</p>{% endif %}
 {% endmacro %}
+
+{% macro analysis(rows, context) %}
+{% if rows %}
+<section class="analysis" aria-labelledby="analysis-heading">
+  <h2 id="analysis-heading">{{ t('an_heading') }}</h2>
+  <p class="an-context">{{ context }}</p>
+  <dl class="an-rows">
+  {% for r in rows %}<div class="an-row"><dt>{{ r.label }}</dt><dd>{% for line in r.lines %}<span class="an-line">{{ line }}</span>{% endfor %}</dd></div>
+  {% endfor %}</dl>
+  <p class="an-note">{{ t('an_note') }}</p>
+</section>
+{% endif %}
+{% endmacro %}
+
+{% macro trends(charts, here, there) %}
+{% if charts %}
+<section class="trends-wrap" aria-label="{{ t('trend_label') }}">
+  <ul class="legend"><li><span class="key"></span>{{ here }}</li><li><span class="key key-ref"></span>{{ there }}</li></ul>
+  <div class="trends">
+  {% for c in charts %}<figure><figcaption>{{ c.title }}</figcaption>{{ c.svg }}</figure>
+  {% endfor %}
+  </div>
+  <p class="muted small">{{ t('trend_note') }}</p>
+</section>
+{% endif %}
+{% endmacro %}
+
+{% macro history_election(row, href) %}
+<th scope="row" role="rowheader" class="election"><a href="{{ href }}">{{ row.view.short(loc) }}</a><span class="small muted">{{ date(row.view.round.date) }}</span></th>
+{% endmacro %}
+
+{% macro history_top(top) %}
+<td role="cell" class="block l-top_three">{% if top %}<ol class="top3">
+{% for r in top %}<li><span class="t3-name"{% if r.full != r.label %} title="{{ r.full }}"{% endif %}>{{ r.label }}</span><span class="t3-pct">{{ pct(r.share, 1) }}</span></li>{% endfor %}
+</ol>{% else %}<span class="muted">—</span>{% endif %}</td>
+{% endmacro %}
