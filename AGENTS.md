@@ -82,7 +82,9 @@ maintainer.
   constituency its stations voted in: its own first, then voters from elsewhere at its special stations, then the
   minorities) and, for the parliament, every constituency.
 - **Look:** the Serbian site's stylesheet and fonts (IBM Plex Sans, Source Serif 4; Latin subsets only).
-- **Hosting:** GitHub Pages through Actions (`pages.yml`), about 60 MB and 3,600 files.
+- **Hosting:** GitHub Pages through Actions (`pages.yml`), about 60 MB and 3,600 files, at
+  https://izborni-podaci.github.io/izborna-analiza-hr/. Pages must be set to "Source: GitHub Actions" in the
+  repository's settings (the maintainer did it on 6 Nov 2026); without it the deploy job fails with a 404.
 
 ### Workflows
 
